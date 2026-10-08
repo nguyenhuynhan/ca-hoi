@@ -51,6 +51,9 @@ onMounted(() => {
 
     <!-- Modal Nhập Thông Tin Đặt Hàng -->
     <OrderModal />
+
+    <!-- Modal Chi Tiết Món Ăn & Công Thức Nấu (Nền mờ đè lên background) -->
+    <RecipeDetailModal />
   </div>
 </template>
 

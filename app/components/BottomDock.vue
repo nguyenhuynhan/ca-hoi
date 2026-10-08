@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const { 
   currentProduct, 
-  currentProcessing,
   quantity,
   isFreeship,
   shippingFee,
@@ -9,6 +8,8 @@ const {
   totalPrice,
   isPriceTableOpen,
   isOrderModalOpen,
+  recipes,
+  openRecipe,
   formatCurrency 
 } = useSalmonStore()
 
@@ -18,6 +19,14 @@ const triggerOrder = () => {
 
 const togglePriceTable = () => {
   isPriceTableOpen.value = true
+}
+
+const matchingRecipe = computed(() => {
+  return recipes.find(r => r.recommendedProductId === currentProduct.value.id) || recipes[0]
+})
+
+const handleViewRecipe = () => {
+  openRecipe(matchingRecipe.value.id)
 }
 </script>
 
@@ -41,7 +50,9 @@ const togglePriceTable = () => {
         <div class="dock-tags-row">
           <span class="dock-tag item-name-tag">{{ quantity }}x {{ currentProduct.shortName }}</span>
           <span class="dock-tag-dot">•</span>
-          <span class="dock-tag processing-tag">{{ currentProcessing.name }}</span>
+          <button class="dock-tag recipe-tag-clickable" @click="handleViewRecipe" title="Bấm xem công thức món này">
+            🍳 {{ matchingRecipe.shortName }} ↗
+          </button>
           <span class="dock-tag-dot hide-mobile">•</span>
           <span class="dock-tag freeship hide-mobile" v-if="isFreeship">🚀 Freeship 2H</span>
           <span class="dock-tag hide-mobile" v-else>Phí ship 30k</span>
@@ -52,6 +63,16 @@ const togglePriceTable = () => {
 
       <!-- Action Buttons Column -->
       <div class="dock-actions">
+        <!-- Xem công thức món ngon button -->
+        <button 
+          class="btn-view-recipe glass-pill" 
+          @click="handleViewRecipe"
+          title="Xem hình ảnh & cách nấu món ngon với loại cá này"
+        >
+          <span class="btn-icon">🍳</span>
+          <span class="btn-text">Công Thức Nấu</span>
+        </button>
+
         <!-- Xem bảng giá chi tiết button -->
         <button 
           class="btn-view-table glass-pill hide-mobile" 
@@ -59,7 +80,7 @@ const togglePriceTable = () => {
           title="Xem bảng báo giá cả 8 loại cá hồi"
         >
           <span class="btn-icon">📋</span>
-          <span class="btn-text">Bảng Báo Giá Gốc</span>
+          <span class="btn-text">Bảng Giá Gốc</span>
         </button>
 
         <!-- Hotline Call -->
@@ -103,23 +124,25 @@ const togglePriceTable = () => {
 
 .dock-container {
   width: 100%;
-  max-width: 1560px;
+  max-width: 1140px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
-  background: rgba(3, 12, 26, 0.88);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  border-radius: 12px;
-  box-shadow: 0 -8px 30px rgba(2, 7, 18, 0.8);
+  padding: 7px 18px;
+  background: rgba(4, 16, 33, 0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  gap: 16px;
 }
 
 .dock-summary {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  min-width: 0;
 }
 
 .dock-price-row {
@@ -144,7 +167,7 @@ const togglePriceTable = () => {
 
 .dock-total-val {
   font-family: var(--font-display);
-  font-size: 1.45rem;
+  font-size: 1.35rem;
   font-weight: 900;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -152,52 +175,73 @@ const togglePriceTable = () => {
 
 .dock-shipping-note {
   font-size: 0.68rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .dock-tags-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.7rem;
-  color: var(--text-secondary);
+  flex-wrap: wrap;
 }
 
-.dock-tag-dot {
-  color: rgba(255, 255, 255, 0.2);
+.dock-tag {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  line-height: 1;
 }
 
 .item-name-tag {
+  font-weight: 700;
   color: #ffffff;
+}
+
+.recipe-tag-clickable {
+  background: rgba(255, 107, 74, 0.15);
+  border: 1px solid rgba(255, 107, 74, 0.35);
+  color: #fed7aa;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.recipe-tag-clickable:hover {
+  background: var(--accent-salmon);
+  color: #ffffff;
+  border-color: var(--accent-salmon);
+}
+
+.dock-tag.freeship {
+  color: #38bdf8;
   font-weight: 700;
 }
 
-.processing-tag {
+.dock-tag.ice-tag {
   color: #7dd3fc;
 }
 
-.freeship {
-  color: #34d399;
-  font-weight: 700;
-}
-
-.ice-tag {
-  color: #93c5fd;
+.dock-tag-dot {
+  font-size: 0.5rem;
+  color: #475569;
 }
 
 .dock-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .glass-pill {
-  background: rgba(7, 21, 41, 0.8);
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 8px 14px;
   border-radius: 8px;
-  padding: 8px 12px;
-  color: var(--text-primary);
-  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-size: 0.76rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -205,12 +249,25 @@ const togglePriceTable = () => {
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .glass-pill:hover {
   background: rgba(14, 42, 77, 0.9);
   border-color: var(--accent-ice);
   transform: translateY(-1px);
+}
+
+.btn-view-recipe {
+  color: #fed7aa;
+  border-color: rgba(255, 107, 74, 0.4);
+  background: rgba(255, 107, 74, 0.12);
+}
+
+.btn-view-recipe:hover {
+  background: rgba(255, 107, 74, 0.25);
+  border-color: var(--accent-salmon);
+  color: #ffffff;
 }
 
 .btn-view-table {
@@ -247,12 +304,14 @@ const togglePriceTable = () => {
   font-weight: 900;
   letter-spacing: 0.04em;
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .btn-cta-sub {
   font-size: 0.62rem;
   opacity: 0.9;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 @media (max-width: 900px) {
@@ -261,21 +320,26 @@ const togglePriceTable = () => {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .bottom-dock-wrapper {
     padding: 0 4px 4px;
   }
   .dock-container {
     padding: 6px 10px;
+    gap: 8px;
   }
   .dock-total-val {
     font-size: 1.15rem;
   }
   .btn-order-cta {
-    padding: 7px 14px;
+    padding: 7px 12px;
   }
   .btn-cta-text {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
+  }
+  .btn-view-recipe {
+    padding: 6px 8px;
+    font-size: 0.7rem;
   }
   .hide-mobile {
     display: none !important;

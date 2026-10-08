@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { 
   catalog,
+  recipes,
   currentProduct, 
   currentProductIndex,
   quantity,
@@ -11,7 +12,8 @@ const {
   nextProduct,
   prevProduct,
   subtotal,
-  formatCurrency 
+  formatCurrency,
+  openRecipe 
 } = useSalmonStore()
 
 const stageRef = ref<HTMLElement | null>(null)
@@ -19,7 +21,40 @@ const mouseX = ref(0)
 const mouseY = ref(0)
 const isHovering = ref(false)
 
-// 3D Perspective Tilt on Mouse Movement
+// Mobile Drawer states
+const isMobileLeftDrawerOpen = ref(false)
+const isMobileRightDrawerOpen = ref(false)
+
+const openMobileLeft = () => {
+  isMobileLeftDrawerOpen.value = true
+  isMobileRightDrawerOpen.value = false
+}
+
+const closeMobileLeft = () => {
+  isMobileLeftDrawerOpen.value = false
+}
+
+const openMobileRight = () => {
+  isMobileRightDrawerOpen.value = true
+  isMobileLeftDrawerOpen.value = false
+}
+
+const closeMobileRight = () => {
+  isMobileRightDrawerOpen.value = false
+}
+
+const closeAllDrawers = () => {
+  isMobileLeftDrawerOpen.value = false
+  isMobileRightDrawerOpen.value = false
+}
+
+// Open top recipe for current salmon
+const openCurrentFishRecipe = () => {
+  const match = recipes.find(r => r.recommendedProductId === currentProduct.value.id) || recipes[0]
+  openRecipe(match.id)
+}
+
+// 3D Perspective Tilt on Mouse Movement (Desktop only)
 const handleMouseMove = (e: MouseEvent) => {
   if (!stageRef.value) return
   const rect = stageRef.value.getBoundingClientRect()
@@ -34,6 +69,30 @@ const handleMouseLeave = () => {
   mouseX.value = 0
   mouseY.value = 0
   isHovering.value = false
+}
+
+// Touch swipe navigation for mobile
+const touchStartX = ref(0)
+const touchEndX = ref(0)
+
+const handleTouchStart = (e: TouchEvent) => {
+  if (e.touches.length > 0) {
+    touchStartX.value = e.touches[0].clientX
+  }
+}
+
+const handleTouchEnd = (e: TouchEvent) => {
+  if (e.changedTouches.length > 0) {
+    touchEndX.value = e.changedTouches[0].clientX
+    const diff = touchEndX.value - touchStartX.value
+    if (Math.abs(diff) > 40) {
+      if (diff < 0) {
+        nextProduct()
+      } else {
+        prevProduct()
+      }
+    }
+  }
 }
 
 // Calculated 3D Transform
@@ -74,17 +133,29 @@ const quantityPresets = computed(() => {
       }"
     ></div>
 
-    <!-- KHU VỰC TRÊN (SHOWCASE ZONE): ẢNH CÁ HỒI Ở GIỮA + 2 MENU BÁM MÉP LẤN VÀO HÌNH -->
+    <!-- KHU VỰC TRÊN (SHOWCASE ZONE): ẢNH CÁ HỒI Ở GIỮA + 2 MENU BÁM MÉP -->
     <div class="showcase-upper-zone">
-      <!-- Menu trái: 8 sản phẩm cá hồi bám mép trái -->
-      <div class="rail-overlay left-rail-overlay">
+      <!-- Menu trái (Desktop): 8 sản phẩm cá hồi bám mép trái -->
+      <div class="rail-overlay left-rail-overlay hide-mobile-rail">
         <LeftControlRail />
       </div>
 
-      <!-- Cá Hồi trung tâm: 3D Tilt, chuyển đổi tức thì với bộ ảnh tải sẵn -->
+      <!-- Nút nổi Mobile: Mở danh mục 8 loại cá (bên trái) -->
+      <button 
+        class="mobile-edge-btn mobile-left-trigger hide-desktop"
+        @click="openMobileLeft"
+        aria-label="Xem 8 dòng cá hồi"
+      >
+        <span class="edge-icon">🐟</span>
+        <span class="edge-text">8 Loại Cá</span>
+      </button>
+
+      <!-- Cá Hồi trung tâm: 3D Tilt & Touch Swipe -->
       <div 
         class="salmon-card"
         :style="salmonTransformStyle"
+        @touchstart.passive="handleTouchStart"
+        @touchend.passive="handleTouchEnd"
       >
         <!-- Nav arrow Prev -->
         <button class="nav-arrow nav-arrow-left" @click="prevProduct" title="Xem sản phẩm trước">
@@ -123,14 +194,25 @@ const quantityPresets = computed(() => {
           <span class="badge-item badge-grade">
             ⭐ {{ currentProduct.grade }}
           </span>
-          <span class="badge-item badge-state hide-mobile">
+          <span class="badge-item badge-state">
             🧊 {{ currentProduct.state }}
           </span>
         </div>
       </div>
 
-      <!-- Menu phải: Quy cách sơ chế bám mép phải -->
-      <div class="rail-overlay right-rail-overlay">
+      <!-- Nút nổi Mobile: Mở danh sách món ngon (bên phải) -->
+      <button 
+        class="mobile-edge-btn mobile-right-trigger hide-desktop"
+        @click="openMobileRight"
+        aria-label="Xem 8 món ngon nấu với cá hồi"
+      >
+        <span class="edge-icon">🍳</span>
+        <span class="edge-text">8 Món Ngon</span>
+        <span class="edge-pulse-dot"></span>
+      </button>
+
+      <!-- Menu phải (Desktop): Gợi ý món ngon bám mép phải -->
+      <div class="rail-overlay right-rail-overlay hide-mobile-rail">
         <RightControlRail />
       </div>
     </div>
@@ -162,17 +244,23 @@ const quantityPresets = computed(() => {
           </div>
         </div>
 
-        <!-- Tagline & Culinary Uses -->
+        <!-- Tagline & Nút xem món ngon gợi ý -->
         <div class="sensory-row">
           <div class="tagline-text">
             <span class="sparkle-icon">✨</span>
             <span>{{ currentProduct.tagline }}</span>
           </div>
-          <div class="culinary-pills hide-mobile">
-            <span v-for="(use, idx) in currentProduct.culinaryUses" :key="idx" class="use-pill">
-              {{ use }}
-            </span>
-          </div>
+
+          <!-- Nút kích hoạt xem công thức món ngon trực tiếp -->
+          <button 
+            class="recipe-trigger-pill"
+            @click="openCurrentFishRecipe"
+            title="Bấm để xem công thức và hình ảnh món ăn ngon nhất với loại cá này"
+          >
+            <span class="pill-fire">🍳</span>
+            <span class="pill-label">Nấu món gì ngon?</span>
+            <span class="pill-arrow">→</span>
+          </button>
         </div>
       </div>
 
@@ -180,9 +268,9 @@ const quantityPresets = computed(() => {
       <div class="quantity-panel glass-panel">
         <div class="qty-header">
           <div class="qty-title-group">
-            <span class="qty-title">CHỌN SỐ LƯỢNG:</span>
+            <span class="qty-title">SỐ LƯỢNG:</span>
             <span class="qty-unit-label">({{ currentProduct.unitLabel }})</span>
-            <span v-if="isFreeship" class="freeship-pill">🚀 Miễn phí ship 2H</span>
+            <span v-if="isFreeship" class="freeship-pill">🚀 Freeship 2H</span>
           </div>
 
           <div class="qty-stepper-wrap">
@@ -207,6 +295,48 @@ const quantityPresets = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- MOBILE DRAWERS & BACKDROP -->
+    <!-- Drawer Backdrop -->
+    <Transition name="drawer-fade">
+      <div 
+        v-if="isMobileLeftDrawerOpen || isMobileRightDrawerOpen" 
+        class="mobile-drawer-backdrop hide-desktop"
+        @click="closeAllDrawers"
+      ></div>
+    </Transition>
+
+    <!-- Mobile Drawer Left: 8 Loại Cá Hồi -->
+    <Transition name="drawer-slide-left">
+      <aside 
+        v-if="isMobileLeftDrawerOpen" 
+        class="mobile-drawer-panel mobile-drawer-left hide-desktop glass-panel"
+      >
+        <div class="drawer-header">
+          <span class="drawer-title">🐟 8 DÒNG CÁ HỒI</span>
+          <button class="drawer-close-btn" @click="closeMobileLeft">✕</button>
+        </div>
+        <div class="drawer-body">
+          <LeftControlRail @select="closeMobileLeft" />
+        </div>
+      </aside>
+    </Transition>
+
+    <!-- Mobile Drawer Right: 8 Món Ngon Gợi Ý -->
+    <Transition name="drawer-slide-right">
+      <aside 
+        v-if="isMobileRightDrawerOpen" 
+        class="mobile-drawer-panel mobile-drawer-right hide-desktop glass-panel"
+      >
+        <div class="drawer-header">
+          <span class="drawer-title">🍳 GỢI Ý MÓN NGON</span>
+          <button class="drawer-close-btn" @click="closeMobileRight">✕</button>
+        </div>
+        <div class="drawer-body">
+          <RightControlRail />
+        </div>
+      </aside>
+    </Transition>
   </div>
 </template>
 
@@ -252,7 +382,7 @@ const quantityPresets = computed(() => {
   top: 0;
   bottom: 0;
   z-index: 20;
-  width: 195px;
+  width: 205px;
   pointer-events: auto;
 }
 
@@ -280,7 +410,7 @@ const quantityPresets = computed(() => {
 .salmon-image-container {
   position: relative;
   width: 90%;
-  height: 86%;
+  height: 88%;
   max-height: 420px;
   display: flex;
   align-items: center;
@@ -330,7 +460,7 @@ const quantityPresets = computed(() => {
   height: 38px;
   border-radius: 50%;
   background: rgba(4, 16, 33, 0.7);
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   color: #ffffff;
   font-size: 1.4rem;
   display: flex;
@@ -349,11 +479,11 @@ const quantityPresets = computed(() => {
 }
 
 .nav-arrow-left {
-  left: 200px;
+  left: 215px;
 }
 
 .nav-arrow-right {
-  right: 200px;
+  right: 215px;
 }
 
 .floating-badges {
@@ -484,21 +614,38 @@ const quantityPresets = computed(() => {
   color: #cbd5e1;
 }
 
-.culinary-pills {
+.recipe-trigger-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, rgba(255, 107, 74, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
+  border: 1px solid rgba(255, 107, 74, 0.4);
+  border-radius: 9999px;
+  color: #fed7aa;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
-.use-pill {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: #93c5fd;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  padding: 1px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
+.recipe-trigger-pill:hover {
+  background: linear-gradient(135deg, rgba(255, 107, 74, 0.4) 0%, rgba(220, 38, 38, 0.3) 100%);
+  color: #ffffff;
+  border-color: var(--accent-salmon);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255, 107, 74, 0.3);
+}
+
+.pill-arrow {
+  color: var(--accent-salmon);
+  font-weight: 800;
+  transition: transform 0.2s;
+}
+
+.recipe-trigger-pill:hover .pill-arrow {
+  transform: translateX(3px);
 }
 
 /* QUANTITY PANEL */
@@ -629,35 +776,284 @@ const quantityPresets = computed(() => {
   border-radius: 3px;
 }
 
-@media (max-width: 1024px) {
-  .rail-overlay {
-    width: 160px;
-  }
-  .nav-arrow-left {
-    left: 165px;
-  }
-  .nav-arrow-right {
-    right: 165px;
+/* MOBILE FLOATING EDGE BUTTONS */
+.mobile-edge-btn {
+  position: absolute;
+  top: 14px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: rgba(4, 16, 33, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-left-trigger {
+  left: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.mobile-right-trigger {
+  right: 8px;
+  border: 1px solid rgba(255, 107, 74, 0.45);
+  background: linear-gradient(135deg, rgba(25, 15, 20, 0.9) 0%, rgba(4, 16, 33, 0.88) 100%);
+}
+
+.edge-icon {
+  font-size: 0.85rem;
+}
+
+.edge-text {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.edge-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-salmon);
+  box-shadow: 0 0 8px var(--accent-salmon);
+  animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+
+/* MOBILE DRAWERS */
+.mobile-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(2, 7, 18, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 500;
+}
+
+.mobile-drawer-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 285px;
+  max-width: 84vw;
+  background: rgba(5, 18, 38, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 510;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 6px;
+  box-sizing: border-box;
+}
+
+.mobile-drawer-left {
+  left: 0;
+  border-right: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.7);
+}
+
+.mobile-drawer-right {
+  right: 0;
+  border-left: 1px solid rgba(255, 107, 74, 0.25);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+}
+
+.drawer-title {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+
+.drawer-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* DRAWER TRANSITIONS */
+.drawer-fade-enter-active,
+.drawer-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.drawer-fade-enter-from,
+.drawer-fade-leave-to {
+  opacity: 0;
+}
+
+.drawer-slide-left-enter-active,
+.drawer-slide-left-leave-active,
+.drawer-slide-right-enter-active,
+.drawer-slide-right-leave-active {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-slide-left-enter-from,
+.drawer-slide-left-leave-to {
+  transform: translateX(-100%);
+}
+
+.drawer-slide-right-enter-from,
+.drawer-slide-right-leave-to {
+  transform: translateX(100%);
+}
+
+/* RESPONSIVENESS */
+@media (min-width: 861px) {
+  .hide-desktop {
+    display: none !important;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .rail-overlay {
-    width: 120px;
+    width: 175px;
   }
-  .nav-arrow {
-    display: none;
+  .nav-arrow-left {
+    left: 180px;
   }
+  .nav-arrow-right {
+    right: 180px;
+  }
+}
+
+@media (max-width: 860px) {
+  .hide-mobile-rail {
+    display: none !important;
+  }
+
+  .nav-arrow-left {
+    left: 12px;
+  }
+
+  .nav-arrow-right {
+    right: 12px;
+  }
+
   .product-title {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
   }
+
   .price-num {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
+
   .quantity-panel {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+    padding: 6px 10px;
+  }
+
+  .qty-header {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .qty-presets-row {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .salmon-card {
+    max-width: 100%;
+  }
+
+  .salmon-image-container {
+    width: 95%;
+    max-height: 340px;
+  }
+
+  .sensory-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .tagline-text {
+    font-size: 0.68rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 58%;
+  }
+
+  .recipe-trigger-pill {
+    padding: 3px 8px;
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-title {
+    font-size: 0.82rem;
+  }
+
+  .country-flag {
+    font-size: 0.95rem;
+  }
+
+  .price-num {
+    font-size: 0.98rem;
+  }
+
+  .floating-badges {
+    bottom: 4px;
+    gap: 4px;
+  }
+
+  .badge-item {
+    font-size: 0.6rem;
+    padding: 2px 7px;
+  }
+
+  .nav-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
   }
 }
 </style>
