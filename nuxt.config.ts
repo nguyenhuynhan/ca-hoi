@@ -4,7 +4,12 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
 
   nitro: {
-    preset: 'cloudflare-pages'
+    preset: "cloudflare_module",
+
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true
+    }
   },
 
   app: {
@@ -29,5 +34,7 @@ export default defineNuxtConfig({
 
   css: [
     '~/assets/css/main.css'
-  ]
+  ],
+
+  modules: ["nitro-cloudflare-dev"]
 })
