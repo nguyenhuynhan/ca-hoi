@@ -1,379 +1,284 @@
 <script setup lang="ts">
-const {
-  currentProduct,
+const { 
+  currentProduct, 
+  currentProcessing,
   quantity,
+  isFreeship,
+  shippingFee,
+  subtotal,
   totalPrice,
-  formatCurrency,
   isPriceTableOpen,
-  isOrderModalOpen
+  isOrderModalOpen,
+  formatCurrency 
 } = useSalmonStore()
 
-const decreaseQty = () => {
-  if (quantity.value > 1) {
-    quantity.value--
-  }
-}
-
-const increaseQty = () => {
-  if (quantity.value < 99) {
-    quantity.value++
-  }
-}
-
-const openPriceTable = () => {
-  isPriceTableOpen.value = true
-}
-
-const openOrderModal = () => {
+const triggerOrder = () => {
   isOrderModalOpen.value = true
+}
+
+const togglePriceTable = () => {
+  isPriceTableOpen.value = true
 }
 </script>
 
 <template>
-  <div class="bottom-dock">
-    <div class="dock-container">
-      <!-- Left: Active Product Preview -->
-      <div class="dock-product-summary">
-        <div class="product-thumb">
-          <img :src="currentProduct.image" :alt="currentProduct.name" />
+  <footer class="bottom-dock-wrapper">
+    <div class="dock-container glass-panel">
+      <!-- Summary Info Column -->
+      <div class="dock-summary">
+        <div class="dock-price-row">
+          <span class="dock-total-label">TỔNG TẠM TÍNH:</span>
+          <div class="price-figures">
+            <span class="dock-total-val" :style="{ color: currentProduct.accentColor }">
+              {{ formatCurrency(totalPrice) }}
+            </span>
+            <span class="dock-shipping-note" v-if="shippingFee > 0">
+              (+ {{ formatCurrency(shippingFee) }} ship)
+            </span>
+          </div>
         </div>
-        <div class="product-meta">
-          <div class="meta-row">
-            <span class="meta-sku">SKU: {{ currentProduct.sku }}</span>
-            <span class="meta-origin">{{ currentProduct.flag }} {{ currentProduct.origin }}</span>
-          </div>
-          <div class="meta-name">{{ currentProduct.name }}</div>
-          <div class="meta-price">
-            <span class="price-num">{{ currentProduct.priceDisplay }}</span>
-            <span class="meta-spec">({{ currentProduct.sizeSpec }})</span>
-          </div>
+
+        <div class="dock-tags-row">
+          <span class="dock-tag item-name-tag">{{ quantity }}x {{ currentProduct.shortName }}</span>
+          <span class="dock-tag-dot">•</span>
+          <span class="dock-tag processing-tag">{{ currentProcessing.name }}</span>
+          <span class="dock-tag-dot hide-mobile">•</span>
+          <span class="dock-tag freeship hide-mobile" v-if="isFreeship">🚀 Freeship 2H</span>
+          <span class="dock-tag hide-mobile" v-else>Phí ship 30k</span>
+          <span class="dock-tag-dot hide-mobile">•</span>
+          <span class="dock-tag ice-tag hide-mobile">Ướp đá 0-2°C</span>
         </div>
       </div>
 
-      <!-- Center: Quantity Selector & Subtotal Calculation -->
-      <div class="dock-calc-zone">
-        <div class="qty-control-box">
-          <span class="qty-label">SỐ LƯỢNG:</span>
-          <div class="qty-stepper">
-            <button class="step-btn" @click="decreaseQty" :disabled="quantity <= 1">-</button>
-            <span class="qty-val">{{ quantity }} <small>{{ currentProduct.unitLabel }}</small></span>
-            <button class="step-btn" @click="increaseQty">+</button>
-          </div>
-        </div>
-
-        <div class="subtotal-box">
-          <span class="subtotal-label">TỔNG TẠM TÍNH</span>
-          <div class="subtotal-val">{{ formatCurrency(totalPrice) }}</div>
-        </div>
-      </div>
-
-      <!-- Right: Primary CTA Buttons -->
+      <!-- Action Buttons Column -->
       <div class="dock-actions">
-        <button class="btn-dock-table" @click="openPriceTable">
-          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-          </svg>
-          <span>BẢNG GIÁ ĐẦY ĐỦ</span>
+        <!-- Xem bảng giá chi tiết button -->
+        <button 
+          class="btn-view-table glass-pill hide-mobile" 
+          @click="togglePriceTable"
+          title="Xem bảng báo giá cả 8 loại cá hồi"
+        >
+          <span class="btn-icon">📋</span>
+          <span class="btn-text">Bảng Báo Giá Gốc</span>
         </button>
 
-        <button class="btn-dock-order" @click="openOrderModal">
-          <span class="order-pulse"></span>
-          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 100-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.24-1.02A1 1 0 005.06 1H3z" />
-            <path d="M16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-          </svg>
-          <span class="btn-text">CHỐT ĐƠN CÁ HỒI</span>
+        <!-- Hotline Call -->
+        <a 
+          href="tel:1900888999" 
+          class="btn-call glass-pill hide-tablet"
+          title="Gọi Hotline Kho 1900 888 999"
+        >
+          <span class="btn-icon">📞</span>
+          <span class="btn-text">1900 888 999</span>
+        </a>
+
+        <!-- NÚT CHỐT ĐƠN CÁ HỒI -->
+        <button 
+          class="btn-order-cta" 
+          :style="{
+            background: `linear-gradient(135deg, ${currentProduct.accentColor} 0%, #dc2626 100%)`,
+            boxShadow: `0 6px 24px -2px ${currentProduct.accentColor}88`
+          }"
+          @click="triggerOrder"
+        >
+          <span class="btn-cta-text">⚡ ĐẶT HÀNG NGAY</span>
+          <span class="btn-cta-sub hide-mobile">Giao lạnh nguyên vẹn trong 2 giờ</span>
         </button>
       </div>
     </div>
-  </div>
+  </footer>
 </template>
 
 <style scoped>
-.bottom-dock {
+.bottom-dock-wrapper {
   position: relative;
-  z-index: 40;
   width: 100%;
-  height: 76px;
-  background: rgba(3, 11, 23, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: 0 -10px 30px rgba(1, 4, 10, 0.7);
+  display: flex;
+  justify-content: center;
+  padding: 0 8px 6px;
+  z-index: 50;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .dock-container {
-  max-width: 1920px;
-  margin: 0 auto;
-  height: 100%;
-  padding: 0 24px;
+  width: 100%;
+  max-width: 1560px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  padding: 8px 16px;
+  background: rgba(3, 12, 26, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 -8px 30px rgba(2, 7, 18, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-/* Product Preview */
-.dock-product-summary {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 320px;
-}
-
-.product-thumb {
-  width: 54px;
-  height: 54px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: rgba(7, 24, 48, 0.8);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  flex-shrink: 0;
-}
-
-.product-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.product-meta {
+.dock-summary {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.meta-row {
+.dock-price-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
-  font-size: 0.65rem;
 }
 
-.meta-sku {
-  color: var(--text-muted);
-  font-family: monospace;
-}
-
-.meta-origin {
-  color: #bae6fd;
-  font-weight: 600;
-}
-
-.meta-name {
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 260px;
-}
-
-.meta-price {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.price-num {
+.dock-total-label {
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #fde047;
-}
-
-.meta-spec {
-  font-size: 0.68rem;
-  color: var(--text-secondary);
-}
-
-/* Calc Zone */
-.dock-calc-zone {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.qty-control-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(7, 24, 48, 0.6);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  border-radius: 10px;
-  padding: 6px 14px;
-}
-
-.qty-label {
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-}
-
-.qty-stepper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.step-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  background: rgba(14, 40, 77, 0.8);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  color: #ffffff;
-  font-size: 1.1rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.step-btn:hover:not(:disabled) {
-  background: var(--accent-salmon);
-  border-color: var(--accent-salmon);
-}
-
-.step-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.qty-val {
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: #ffffff;
-  min-width: 80px;
-  text-align: center;
-}
-
-.qty-val small {
-  font-size: 0.68rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.subtotal-box {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
-
-.subtotal-label {
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 
-.subtotal-val {
+.price-figures {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.dock-total-val {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   font-weight: 900;
-  color: #fde047;
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 
-/* Actions */
+.dock-shipping-note {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.dock-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.dock-tag-dot {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.item-name-tag {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.processing-tag {
+  color: #7dd3fc;
+}
+
+.freeship {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.ice-tag {
+  color: #93c5fd;
+}
+
 .dock-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.btn-dock-table {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  background: rgba(14, 40, 77, 0.65);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 10px;
-  color: #bae6fd;
-  font-size: 0.8rem;
+}
+
+.glass-pill {
+  background: rgba(7, 21, 41, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 0.78rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.btn-dock-table:hover {
-  background: rgba(20, 60, 110, 0.9);
-  border-color: var(--accent-ice);
-  color: #ffffff;
-}
-
-.btn-dock-order {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 13px 28px;
-  background: linear-gradient(135deg, #ff6b4a 0%, #e04828 100%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 0.88rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  gap: 6px;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(255, 107, 74, 0.45);
-  transition: var(--transition-fast);
+  text-decoration: none;
+  transition: all 0.2s;
 }
 
-.btn-dock-order:hover {
-  background: linear-gradient(135deg, #ff7d5f 0%, #ff5230 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(255, 107, 74, 0.6);
+.glass-pill:hover {
+  background: rgba(14, 42, 77, 0.9);
+  border-color: var(--accent-ice);
+  transform: translateY(-1px);
 }
 
-.order-pulse {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(255, 107, 74, 0.6);
-  animation: pulseGlow 2.5s infinite;
-  pointer-events: none;
+.btn-view-table {
+  color: #fde047;
+  border-color: rgba(251, 191, 36, 0.3);
 }
 
-.btn-icon {
-  width: 18px;
-  height: 18px;
+.btn-view-table:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
 }
 
-@media (max-width: 1100px) {
-  .dock-product-summary {
-    display: none;
+.btn-order-cta {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 22px;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-order-cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+.btn-cta-text {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.btn-cta-sub {
+  font-size: 0.62rem;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .hide-tablet {
+    display: none !important;
   }
 }
 
-@media (max-width: 768px) {
-  .bottom-dock {
-    height: auto;
-    padding: 10px 0;
+@media (max-width: 640px) {
+  .bottom-dock-wrapper {
+    padding: 0 4px 4px;
   }
   .dock-container {
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 14px;
+    padding: 6px 10px;
   }
-  .dock-calc-zone {
-    width: 100%;
-    justify-content: space-between;
+  .dock-total-val {
+    font-size: 1.15rem;
   }
-  .dock-actions {
-    width: 100%;
+  .btn-order-cta {
+    padding: 7px 14px;
   }
-  .btn-dock-table, .btn-dock-order {
-    flex: 1;
-    justify-content: center;
-    padding: 10px 14px;
-    font-size: 0.78rem;
+  .btn-cta-text {
+    font-size: 0.8rem;
+  }
+  .hide-mobile {
+    display: none !important;
   }
 }
 </style>

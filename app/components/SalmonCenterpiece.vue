@@ -1,12 +1,17 @@
 <script setup lang="ts">
-const {
+const { 
   catalog,
+  currentProduct, 
   currentProductIndex,
-  currentProduct,
-  formatCurrency,
+  quantity,
+  isFreeship,
+  setQuantity,
+  incQuantity,
+  decQuantity,
   nextProduct,
   prevProduct,
-  setProductIndex
+  subtotal,
+  formatCurrency 
 } = useSalmonStore()
 
 const stageRef = ref<HTMLElement | null>(null)
@@ -32,7 +37,7 @@ const handleMouseLeave = () => {
 }
 
 // Calculated 3D Transform
-const fishTransformStyle = computed(() => {
+const salmonTransformStyle = computed(() => {
   if (!isHovering.value) {
     return {
       transform: 'perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1)'
@@ -44,115 +49,161 @@ const fishTransformStyle = computed(() => {
     transform: `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`
   }
 })
+
+// Quantity presets based on unit
+const quantityPresets = computed(() => {
+  if (currentProduct.value.unit === 'CON') {
+    return [1, 2, 3, 5]
+  }
+  return [1, 2, 3, 5, 10]
+})
 </script>
 
 <template>
-  <div
+  <div 
     ref="stageRef"
     class="salmon-center-stage"
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
   >
-    <!-- Dynamic Ambient Halo behind salmon -->
-    <div
-      class="salmon-halo animate-glow"
+    <!-- Background Ambient Halo -->
+    <div 
+      class="salmon-halo"
       :style="{
-        background: `radial-gradient(circle, ${currentProduct.accentColor}44 0%, rgba(2, 12, 28, 0) 70%)`
+        background: `radial-gradient(circle, ${currentProduct.accentColor}33 0%, rgba(4, 16, 33, 0) 70%)`
       }"
     ></div>
 
-    <!-- UPPER SHOWCASE ZONE: Fish Image + Specs -->
-    <div class="showcase-content">
-      <!-- Top Badges & Breadcrumb -->
-      <div class="salmon-top-specs">
-        <div class="spec-capsule">
-          <span class="flag-icon">{{ currentProduct.flag }}</span>
-          <span class="spec-label">{{ currentProduct.origin }}</span>
-          <span class="spec-divider">•</span>
-          <span class="spec-species">{{ currentProduct.species }}</span>
-        </div>
-
-        <div class="spec-capsule spec-capsule-ice">
-          <span class="ice-icon">❄️</span>
-          <span class="spec-state">{{ currentProduct.state }}</span>
-        </div>
-
-        <div class="spec-capsule spec-capsule-badge">
-          <span>{{ currentProduct.badge }}</span>
-        </div>
+    <!-- KHU VỰC TRÊN (SHOWCASE ZONE): ẢNH CÁ HỒI Ở GIỮA + 2 MENU BÁM MÉP LẤN VÀO HÌNH -->
+    <div class="showcase-upper-zone">
+      <!-- Menu trái: 8 sản phẩm cá hồi bám mép trái -->
+      <div class="rail-overlay left-rail-overlay">
+        <LeftControlRail />
       </div>
 
-      <!-- Salmon Image 3D Display Container -->
-      <div class="fish-card" :style="fishTransformStyle">
-        <!-- Navigation Arrows for quick flipping -->
-        <button class="nav-arrow nav-prev" @click.stop="prevProduct" title="Xem sản phẩm trước">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <button class="nav-arrow nav-next" @click.stop="nextProduct" title="Xem sản phẩm kế tiếp">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
+      <!-- Cá Hồi trung tâm: 3D Tilt, chuyển đổi tức thì với bộ ảnh tải sẵn -->
+      <div 
+        class="salmon-card"
+        :style="salmonTransformStyle"
+      >
+        <!-- Nav arrow Prev -->
+        <button class="nav-arrow nav-arrow-left" @click="prevProduct" title="Xem sản phẩm trước">
+          ‹
         </button>
 
-        <div class="fish-image-stage animate-float">
-          <!-- Stack all 8 images in DOM for instant zero-latency swap -->
-          <img
-            v-for="(item, idx) in catalog"
+        <div class="salmon-image-container animate-float">
+          <!-- Stack toàn bộ ảnh cá hồi trong DOM -->
+          <img 
+            v-for="item in catalog"
             :key="item.id"
-            :src="item.image"
+            :src="item.image" 
             :alt="item.name"
-            class="fish-img"
-            :class="{ 'is-active': idx === currentProductIndex }"
+            class="salmon-img"
+            :class="{ 'is-active': item.id === currentProduct.id }"
             loading="eager"
             decoding="async"
           />
 
           <!-- Floor Shadow Reflection -->
-          <div
-            class="fish-floor-shadow"
+          <div 
+            class="salmon-floor-shadow"
             :style="{
-              boxShadow: `0 35px 70px -15px ${currentProduct.accentColor}55`
+              boxShadow: `0 24px 60px -10px ${currentProduct.accentColor}55`
             }"
           ></div>
         </div>
+
+        <!-- Nav arrow Next -->
+        <button class="nav-arrow nav-arrow-right" @click="nextProduct" title="Xem sản phẩm kế tiếp">
+          ›
+        </button>
+
+        <!-- Product Floating Badges -->
+        <div class="floating-badges">
+          <span class="badge-item badge-grade">
+            ⭐ {{ currentProduct.grade }}
+          </span>
+          <span class="badge-item badge-state hide-mobile">
+            🧊 {{ currentProduct.state }}
+          </span>
+        </div>
       </div>
 
-      <!-- Mobile / Quick Selector Dots -->
-      <div class="quick-dots">
-        <button
-          v-for="(item, idx) in catalog"
-          :key="item.id"
-          class="dot-btn"
-          :class="{ 'is-active': idx === currentProductIndex }"
-          :title="item.shortName"
-          @click="setProductIndex(idx)"
-        ></button>
+      <!-- Menu phải: Quy cách sơ chế bám mép phải -->
+      <div class="rail-overlay right-rail-overlay">
+        <RightControlRail />
       </div>
+    </div>
 
-      <!-- Salmon Details & Specs Box -->
-      <div class="salmon-info-box">
-        <div class="info-sku-row">
-          <span class="sku-tag">SKU: {{ currentProduct.sku }}</span>
-          <span class="grade-tag">🏆 {{ currentProduct.grade }}</span>
-          <span class="packaging-pill">📦 {{ currentProduct.packaging }}</span>
+    <!-- KHU VỰC DƯỚI (DETAILS ZONE): MÔ TẢ & CHỌN SỐ LƯỢNG -->
+    <div class="details-lower-zone">
+      <!-- Thông tin sản phẩm & Cảm quan -->
+      <div class="salmon-info-panel glass-panel">
+        <div class="info-header-row">
+          <div class="info-title-group">
+            <div class="title-with-flag">
+              <span class="country-flag">{{ currentProduct.flag }}</span>
+              <h1 class="product-title">{{ currentProduct.name }}</h1>
+            </div>
+            <div class="spec-meta-row hide-mobile">
+              <span class="spec-pill">Quy cách: {{ currentProduct.sizeSpec }}</span>
+              <span class="spec-pill">Đóng gói: {{ currentProduct.packaging }}</span>
+              <span class="spec-pill">SKU: {{ currentProduct.sku }}</span>
+            </div>
+          </div>
+
+          <div class="price-badge-group">
+            <span class="price-num" :style="{ color: currentProduct.accentColor }">
+              {{ currentProduct.priceDisplay }}
+            </span>
+            <span class="unit-helper hide-mobile" v-if="currentProduct.portionWeight">
+              ({{ currentProduct.portionWeight }} / khay)
+            </span>
+          </div>
         </div>
 
-        <h1 class="salmon-title">{{ currentProduct.name }}</h1>
-        <p class="salmon-tagline">“{{ currentProduct.tagline }}”</p>
-        <p class="salmon-desc">{{ currentProduct.description }}</p>
+        <!-- Tagline & Culinary Uses -->
+        <div class="sensory-row">
+          <div class="tagline-text">
+            <span class="sparkle-icon">✨</span>
+            <span>{{ currentProduct.tagline }}</span>
+          </div>
+          <div class="culinary-pills hide-mobile">
+            <span v-for="(use, idx) in currentProduct.culinaryUses" :key="idx" class="use-pill">
+              {{ use }}
+            </span>
+          </div>
+        </div>
+      </div>
 
-        <!-- Quick Spec Highlights -->
-        <div class="spec-metrics-row">
-          <div class="metric-card">
-            <span class="m-label">QUY CÁCH / CỠ</span>
-            <span class="m-val">{{ currentProduct.sizeSpec }}</span>
+      <!-- Menu chọn số lượng -->
+      <div class="quantity-panel glass-panel">
+        <div class="qty-header">
+          <div class="qty-title-group">
+            <span class="qty-title">CHỌN SỐ LƯỢNG:</span>
+            <span class="qty-unit-label">({{ currentProduct.unitLabel }})</span>
+            <span v-if="isFreeship" class="freeship-pill">🚀 Miễn phí ship 2H</span>
           </div>
-          <div class="metric-card">
-            <span class="m-label">ĐƠN VỊ TÍNH</span>
-            <span class="m-val">{{ currentProduct.unit }}</span>
+
+          <div class="qty-stepper-wrap">
+            <button class="step-btn" @click="decQuantity" :disabled="quantity <= 1">-</button>
+            <span class="qty-val">{{ quantity }}</span>
+            <button class="step-btn" @click="incQuantity">+</button>
           </div>
-          <div class="metric-card highlight-card">
-            <span class="m-label">GIÁ CHÀO XUẤT XƯỞNG</span>
-            <span class="m-val text-yellow">{{ currentProduct.priceDisplay }}</span>
-          </div>
+        </div>
+
+        <!-- Preset buttons -->
+        <div class="qty-presets-row">
+          <button 
+            v-for="q in quantityPresets" 
+            :key="q"
+            class="preset-btn"
+            :class="{ active: quantity === q }"
+            @click="setQuantity(q)"
+          >
+            {{ q }} {{ currentProduct.unit }}
+            <span v-if="q >= 3" class="preset-tag">Freeship</span>
+          </button>
         </div>
       </div>
     </div>
@@ -161,135 +212,116 @@ const fishTransformStyle = computed(() => {
 
 <style scoped>
 .salmon-center-stage {
-  flex: 1;
-  height: 100%;
   position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 24px;
-  overflow: hidden;
+  justify-content: space-between;
   box-sizing: border-box;
+  padding: 0 4px;
 }
 
 .salmon-halo {
   position: absolute;
-  top: 35%;
+  top: 15%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 580px;
+  transform: translate(-50%, -20%);
+  width: 700px;
   height: 480px;
   border-radius: 50%;
+  filter: blur(60px);
   pointer-events: none;
-  filter: blur(50px);
   z-index: 1;
-  transition: background 0.6s ease;
+  transition: background 0.5s ease;
 }
 
-.showcase-content {
+/* SHOWCASE UPPER ZONE */
+.showcase-upper-zone {
   position: relative;
-  z-index: 5;
-  width: 100%;
-  max-width: 960px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.salmon-top-specs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 4px;
-}
-
-.spec-capsule {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background: rgba(4, 16, 33, 0.65);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  border-radius: 9999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #bae6fd;
-}
-
-.spec-capsule-ice {
-  border-color: rgba(56, 189, 248, 0.35);
-  background: rgba(14, 116, 144, 0.2);
-}
-
-.spec-capsule-badge {
-  background: rgba(255, 107, 74, 0.2);
-  border-color: rgba(255, 107, 74, 0.4);
-  color: #ff9e88;
-}
-
-.spec-divider {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-/* Fish 3D card */
-.fish-card {
-  position: relative;
-  width: 100%;
-  max-width: 620px;
-  height: 310px;
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
+  z-index: 10;
 }
 
-.fish-image-stage {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fish-img {
+.rail-overlay {
   position: absolute;
-  max-width: 90%;
-  max-height: 90%;
-  object-fit: contain;
-  border-radius: 16px;
-  box-shadow: 0 15px 40px rgba(1, 4, 10, 0.6), 0 0 20px rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  opacity: 0;
-  transform: scale(0.95);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  pointer-events: none;
-}
-
-.fish-img.is-active {
-  opacity: 1;
-  transform: scale(1);
+  top: 0;
+  bottom: 0;
+  z-index: 20;
+  width: 195px;
   pointer-events: auto;
 }
 
-.fish-floor-shadow {
-  position: absolute;
-  bottom: 0;
-  width: 65%;
-  height: 20px;
-  border-radius: 50%;
-  pointer-events: none;
-  transition: box-shadow 0.5s ease;
+.left-rail-overlay {
+  left: 0;
 }
 
-/* Quick Nav Arrows */
+.right-rail-overlay {
+  right: 0;
+}
+
+/* SALMON CARD */
+.salmon-card {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  transition: transform 0.1s ease-out;
+}
+
+.salmon-image-container {
+  position: relative;
+  width: 90%;
+  height: 86%;
+  max-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.salmon-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000000 68%, rgba(0, 0, 0, 0.7) 82%, transparent 98%);
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.85));
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.salmon-img.is-active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.salmon-floor-shadow {
+  position: absolute;
+  bottom: 5%;
+  width: 75%;
+  height: 24px;
+  border-radius: 50%;
+  filter: blur(16px);
+  pointer-events: none;
+  z-index: 1;
+  transition: box-shadow 0.4s ease;
+}
+
+/* Nav arrows */
 .nav-arrow {
   position: absolute;
   top: 50%;
@@ -298,193 +330,334 @@ const fishTransformStyle = computed(() => {
   height: 38px;
   border-radius: 50%;
   background: rgba(4, 16, 33, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  color: #bae6fd;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: #ffffff;
+  font-size: 1.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
-  transition: var(--transition-fast);
-}
-
-.nav-arrow svg {
-  width: 20px;
-  height: 20px;
+  z-index: 25;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
 }
 
 .nav-arrow:hover {
-  background: rgba(14, 40, 77, 0.9);
+  background: rgba(14, 42, 77, 0.9);
   border-color: var(--accent-ice);
-  color: #ffffff;
   transform: translateY(-50%) scale(1.1);
 }
 
-.nav-prev { left: -10px; }
-.nav-next { right: -10px; }
+.nav-arrow-left {
+  left: 200px;
+}
 
-/* Quick dots */
-.quick-dots {
+.nav-arrow-right {
+  right: 200px;
+}
+
+.floating-badges {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 2px 0;
+  gap: 8px;
+  z-index: 22;
+  white-space: nowrap;
 }
 
-.dot-btn {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.dot-btn.is-active {
-  width: 22px;
+.badge-item {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 10px;
   border-radius: 9999px;
-  background: var(--accent-salmon);
-  box-shadow: 0 0 8px var(--accent-salmon);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-/* Info Box */
-.salmon-info-box {
-  width: 100%;
-  background: rgba(5, 17, 35, 0.65);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(56, 189, 248, 0.14);
-  border-radius: 14px;
-  padding: 12px 20px;
+.badge-grade {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fde047;
+}
+
+.badge-state {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #7dd3fc;
+}
+
+/* DETAILS LOWER ZONE */
+.details-lower-zone {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  text-align: center;
+  z-index: 20;
+  padding: 0 4px 4px;
 }
 
-.info-sku-row {
+.salmon-info-panel {
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.info-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title-with-flag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.country-flag {
+  font-size: 1.1rem;
+}
+
+.product-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.spec-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spec-pill {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+
+.price-badge-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.price-num {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.unit-helper {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.sensory-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tagline-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: #cbd5e1;
+}
+
+.culinary-pills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.use-pill {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* QUANTITY PANEL */
+.quantity-panel {
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.qty-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qty-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qty-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.qty-unit-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.freeship-pill {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 1px 6px;
+  border-radius: 9999px;
+}
+
+.qty-stepper-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(4, 16, 33, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.step-btn {
+  width: 28px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  transition: background 0.15s;
 }
 
-.sku-tag {
-  font-size: 0.68rem;
-  font-family: monospace;
-  font-weight: 700;
-  padding: 2px 8px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  color: var(--text-ice);
+.step-btn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.2);
 }
 
-.grade-tag {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #fde047;
+.step-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.packaging-pill {
-  font-size: 0.65rem;
-  color: var(--text-secondary);
-}
-
-.salmon-title {
+.qty-val {
+  min-width: 24px;
+  text-align: center;
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 0.85rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
   color: #ffffff;
-  line-height: 1.2;
 }
 
-.salmon-tagline {
-  font-size: 0.8rem;
-  font-style: italic;
-  color: #ff9e88;
-  font-weight: 500;
-}
-
-.salmon-desc {
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  line-height: 1.35;
-  max-width: 820px;
-  margin: 0 auto;
-}
-
-/* Metric Cards */
-.spec-metrics-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.metric-card {
-  background: rgba(3, 11, 23, 0.55);
-  border: 1px solid rgba(56, 189, 248, 0.1);
-  border-radius: 8px;
-  padding: 6px 10px;
+.qty-presets-row {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 6px;
 }
 
-.highlight-card {
-  background: rgba(234, 179, 8, 0.1);
-  border-color: rgba(234, 179, 8, 0.35);
-}
-
-.m-label {
-  font-size: 0.6rem;
+.preset-btn {
+  position: relative;
+  padding: 3px 10px;
+  background: rgba(4, 16, 33, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.18s;
 }
 
-.m-val {
-  font-size: 0.82rem;
+.preset-btn:hover {
+  background: rgba(14, 42, 77, 0.6);
+  color: #ffffff;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.preset-btn.active {
+  background: var(--accent-salmon);
+  border-color: var(--accent-salmon);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 107, 74, 0.4);
+}
+
+.preset-tag {
+  font-size: 0.55rem;
   font-weight: 800;
-  color: #f8fafc;
+  background: #38bdf8;
+  color: #041021;
+  padding: 0 4px;
+  border-radius: 3px;
 }
 
-.text-yellow {
-  color: #fde047;
-  font-size: 0.92rem;
-  font-family: var(--font-display);
-}
-
-@media (max-height: 800px) {
-  .fish-card {
-    height: 250px;
+@media (max-width: 1024px) {
+  .rail-overlay {
+    width: 160px;
   }
-  .salmon-desc {
+  .nav-arrow-left {
+    left: 165px;
+  }
+  .nav-arrow-right {
+    right: 165px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rail-overlay {
+    width: 120px;
+  }
+  .nav-arrow {
     display: none;
   }
-}
-
-@media (max-width: 640px) {
-  .salmon-center-stage {
-    padding: 6px 12px;
+  .product-title {
+    font-size: 0.85rem;
   }
-  .fish-card {
-    height: 220px;
+  .price-num {
+    font-size: 1rem;
   }
-  .salmon-title {
-    font-size: 1.05rem;
-  }
-  .salmon-tagline {
-    font-size: 0.72rem;
-  }
-  .spec-metrics-row {
-    grid-template-columns: 1fr;
-    gap: 4px;
+  .quantity-panel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }
 </style>

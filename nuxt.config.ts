@@ -34,7 +34,5 @@ export default defineNuxtConfig({
 
   css: [
     '~/assets/css/main.css'
-  ],
-
-  modules: ["nitro-cloudflare-dev"]
-})
+  ]
+})
