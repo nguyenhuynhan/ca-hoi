@@ -9,7 +9,16 @@ const {
   subtotal,
   totalPrice,
   isOrderModalOpen,
-  formatCurrency 
+  formatCurrency,
+  promoCodes,
+  appliedPromoCode,
+  promoInputText,
+  promoFeedback,
+  currentPromo,
+  isPromoValid,
+  promoDiscount,
+  applyPromoCode,
+  removePromoCode
 } = useSalmonStore()
 
 // Customer inputs
@@ -19,6 +28,26 @@ const customerAddress = ref('')
 const deliverySpeed = ref('fast2h') // 'fast2h' | 'scheduled'
 const paymentMethod = ref('cod')   // 'cod' | 'vietqr'
 const processingNote = ref('')
+
+// Promo Input State
+const localPromoInput = ref(appliedPromoCode.value || '')
+
+watch(appliedPromoCode, (val) => {
+  if (val) {
+    localPromoInput.value = val
+  } else {
+    localPromoInput.value = ''
+  }
+})
+
+const handleApplyPromo = () => {
+  applyPromoCode(localPromoInput.value)
+}
+
+const handleQuickSelect = (code: string) => {
+  localPromoInput.value = code
+  applyPromoCode(code)
+}
 
 // Submission Status
 const isSubmitting = ref(false)
@@ -73,6 +102,8 @@ const submitOrder = async () => {
       processingNote: processingNote.value,
       subtotal: subtotal.value,
       shippingFee: shippingFee.value,
+      promoCode: appliedPromoCode.value || undefined,
+      promoDiscount: promoDiscount.value || 0,
       totalAmount: totalPrice.value
     }
 
@@ -135,6 +166,107 @@ const submitOrder = async () => {
               </span>
               <span class="sum-ship-val" v-else-if="isFreeship">Freeship 2H</span>
               <span class="sum-ship-val" v-else>+30k ship</span>
+            </div>
+          </div>
+
+          <!-- Price Breakdown Box -->
+          <div class="price-breakdown-card">
+            <div class="breakdown-row">
+              <span class="bd-label">Tạm tính cá hồi:</span>
+              <span class="bd-val">{{ formatCurrency(subtotal) }}</span>
+            </div>
+            <div class="breakdown-row">
+              <span class="bd-label">Phí giao lạnh 2H:</span>
+              <span class="bd-val" :class="{ 'bd-free': isFreeship }">
+                {{ isFreeship ? 'Miễn phí (Freeship)' : formatCurrency(shippingFee) }}
+              </span>
+            </div>
+            <div v-if="promoDiscount > 0" class="breakdown-row discount-row">
+              <span class="bd-label discount-label">
+                <span class="promo-code-badge">🎟️ {{ appliedPromoCode }}</span> Giảm trừ khuyến mãi:
+              </span>
+              <span class="bd-val discount-val">-{{ formatCurrency(promoDiscount) }}</span>
+            </div>
+            <div class="breakdown-divider"></div>
+            <div class="breakdown-row total-row">
+              <span class="bd-total-label">
+                {{ isWholeFish ? '⚖️ Ước tính thanh toán:' : '⚡ TỔNG THANH TOÁN:' }}
+              </span>
+              <span class="bd-total-val" :style="{ color: currentProduct.accentColor }">
+                {{ isWholeFish ? '~' : '' }}{{ formatCurrency(totalPrice) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- PROMO CODE VOUCHER SECTION -->
+          <div class="promo-box-container">
+            <div class="promo-box-header">
+              <span class="promo-box-title">🎟️ Mã Khuyến Mãi / Voucher (Demo)</span>
+              <span v-if="appliedPromoCode" class="applied-indicator">✓ Đã áp dụng</span>
+            </div>
+
+            <!-- Khi đã có mã áp dụng -->
+            <div v-if="appliedPromoCode && currentPromo" class="active-promo-banner">
+              <div class="active-promo-left">
+                <span class="active-icon">{{ currentPromo.icon }}</span>
+                <div class="active-info">
+                  <div class="active-title-line">
+                    <strong class="active-code-pill">{{ currentPromo.code }}</strong>
+                    <span class="active-tag">{{ currentPromo.badge }}</span>
+                  </div>
+                  <span class="active-desc">{{ currentPromo.title }} • {{ currentPromo.description }}</span>
+                  <span v-if="!isPromoValid" class="promo-min-warning">
+                    ⚠️ Chưa đủ điều kiện: Đơn cần tối thiểu {{ formatCurrency(currentPromo.minOrderValue) }}
+                  </span>
+                </div>
+              </div>
+              <button type="button" class="btn-remove-code" @click="removePromoCode" title="Gỡ bỏ mã này">
+                Gỡ bỏ ✕
+              </button>
+            </div>
+
+            <!-- Khung nhập mã khi chưa áp dụng -->
+            <div v-else class="promo-input-bar">
+              <input 
+                v-model="localPromoInput"
+                type="text" 
+                class="promo-input-field" 
+                placeholder="Nhập mã ưu đãi (VD: CAHOI50, FREESHIP...)"
+                @keyup.enter.prevent="handleApplyPromo"
+              />
+              <button 
+                type="button" 
+                class="btn-apply-code"
+                :disabled="!localPromoInput.trim()"
+                @click="handleApplyPromo"
+              >
+                Áp Dụng
+              </button>
+            </div>
+
+            <!-- Feedback thông báo kết quả nhập mã -->
+            <div v-if="promoFeedback.message" class="promo-alert" :class="promoFeedback.type">
+              <span>{{ promoFeedback.type === 'success' ? '✓' : '⚠️' }}</span>
+              <span>{{ promoFeedback.message }}</span>
+            </div>
+
+            <!-- Gợi ý các mã demo có sẵn bấm 1 chạm -->
+            <div class="quick-promo-tags-row">
+              <span class="quick-title">Chọn nhanh mã có sẵn:</span>
+              <div class="quick-tags-list">
+                <button 
+                  v-for="p in promoCodes" 
+                  :key="p.code"
+                  type="button"
+                  class="quick-pill-btn"
+                  :class="{ active: appliedPromoCode === p.code }"
+                  @click="handleQuickSelect(p.code)"
+                >
+                  <span class="qp-icon">{{ p.icon }}</span>
+                  <span class="qp-code">{{ p.code }}</span>
+                  <span class="qp-name">({{ p.title }})</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -237,6 +369,11 @@ const submitOrder = async () => {
           <div class="success-code-box">
             <span class="code-label">MÃ ĐƠN HÀNG:</span>
             <strong class="code-val">{{ orderResult.orderId }}</strong>
+          </div>
+
+          <!-- Tiết kiệm nhờ mã khuyến mãi nếu có -->
+          <div v-if="orderResult.orderDetails?.promoDiscount > 0" class="success-promo-saved">
+            🎉 Đơn hàng đã áp dụng mã <strong>{{ orderResult.orderDetails.promoCode }}</strong> và tiết kiệm <strong>{{ formatCurrency(orderResult.orderDetails.promoDiscount) }}</strong>!
           </div>
 
           <!-- VietQR Code nếu chọn chuyển khoản -->
@@ -350,7 +487,7 @@ const submitOrder = async () => {
   background: rgba(8, 25, 50, 0.7);
   border: 1px solid rgba(56, 189, 248, 0.2);
   border-radius: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .summary-thumb {
@@ -405,6 +542,346 @@ const submitOrder = async () => {
   font-weight: 700;
 }
 
+.summary-price-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.sum-price-val {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.sum-ship-val {
+  font-size: 0.65rem;
+  color: #34d399;
+}
+
+/* PRICE BREAKDOWN CARD */
+.price-breakdown-card {
+  background: rgba(6, 20, 39, 0.65);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.bd-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bd-val {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.bd-free {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.discount-row {
+  color: #10b981;
+}
+
+.discount-label {
+  color: #10b981;
+}
+
+.promo-code-badge {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.discount-val {
+  color: #10b981;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.breakdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 2px 0;
+}
+
+.total-row {
+  padding-top: 2px;
+}
+
+.bd-total-label {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.bd-total-val {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+/* PROMO BOX CONTAINER */
+.promo-box-container {
+  background: rgba(8, 25, 50, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.promo-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.promo-box-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.applied-indicator {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.active-promo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 8px;
+  padding: 8px 12px;
+  gap: 10px;
+}
+
+.active-promo-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.active-icon {
+  font-size: 1.25rem;
+}
+
+.active-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.active-title-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-code-pill {
+  font-family: var(--font-display);
+  color: #10b981;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.active-tag {
+  font-size: 0.62rem;
+  font-weight: 800;
+  background: rgba(255, 107, 74, 0.2);
+  color: #fed7aa;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.active-desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.promo-min-warning {
+  font-size: 0.68rem;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.btn-remove-code {
+  padding: 5px 10px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-remove-code:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ffffff;
+}
+
+.promo-input-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.promo-input-field {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(6, 20, 39, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+.promo-input-field:focus {
+  border-color: #38bdf8;
+}
+
+.btn-apply-code {
+  padding: 8px 14px;
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-apply-code:hover:not(:disabled) {
+  background: #38bdf8;
+  color: #041021;
+}
+
+.btn-apply-code:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.promo-alert {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.promo-alert.success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.promo-alert.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.quick-promo-tags-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quick-title {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.quick-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-pill-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #ffffff;
+}
+
+.quick-pill-btn.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #34d399;
+  font-weight: 700;
+}
+
+.qp-icon {
+  font-size: 0.75rem;
+}
+
+.qp-code {
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
+.qp-name {
+  color: var(--text-muted);
+  font-size: 0.64rem;
+}
+
+.quick-pill-btn.active .qp-name {
+  color: #a7f3d0;
+}
+
 .whole-fish-order-notice {
   display: flex;
   align-items: flex-start;
@@ -431,23 +908,6 @@ const submitOrder = async () => {
 .whole-fish-order-notice .notice-text strong {
   color: #ffffff;
   font-weight: 800;
-}
-
-.summary-price-col {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.sum-price-val {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 900;
-}
-
-.sum-ship-val {
-  font-size: 0.65rem;
-  color: #34d399;
 }
 
 .order-fields-grid {
@@ -518,16 +978,16 @@ const submitOrder = async () => {
   cursor: pointer;
   margin-top: 6px;
   box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4);
-  transition: all 0.2s;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .btn-submit-order:hover:not(:disabled) {
-  filter: brightness(1.1);
+  opacity: 0.92;
   transform: translateY(-1px);
 }
 
 .btn-submit-order:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -537,7 +997,7 @@ const submitOrder = async () => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 16px 8px;
+  padding: 20px 8px;
   gap: 12px;
 }
 
@@ -545,7 +1005,7 @@ const submitOrder = async () => {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(52, 211, 153, 0.2);
+  background: rgba(52, 211, 153, 0.15);
   border: 2px solid #34d399;
   color: #34d399;
   font-size: 1.8rem;
@@ -588,6 +1048,15 @@ const submitOrder = async () => {
   font-size: 1.15rem;
   color: #38bdf8;
   letter-spacing: 0.05em;
+}
+
+.success-promo-saved {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: #34d399;
+  font-size: 0.8rem;
 }
 
 .qr-box {
@@ -636,6 +1105,16 @@ const submitOrder = async () => {
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 600px) {

@@ -14,7 +14,10 @@ const {
   formatCurrency,
   setQuantity,
   incQuantity,
-  decQuantity
+  decQuantity,
+  appliedPromoCode,
+  promoDiscount,
+  openPromoModal
 } = useSalmonStore()
 
 const triggerOrder = () => {
@@ -41,6 +44,7 @@ const quantityPresets = computed(() => {
         <div class="mobile-item-info">
           <span class="mobile-qty-pill">{{ quantity }}x</span>
           <span class="mobile-prod-name">{{ currentProduct.shortName }}</span>
+          <span v-if="promoDiscount > 0" class="mobile-tag tag-promo">🎟️ -{{ formatCurrency(promoDiscount) }}</span>
           <span v-if="isWholeFish" class="mobile-tag tag-weigh">⚖️ Cân thực tế</span>
           <span v-else-if="isFreeship" class="mobile-tag tag-free">🚀 Freeship 2H</span>
           <span v-else class="mobile-tag tag-ship">Phí ship 30k</span>
@@ -87,6 +91,9 @@ const quantityPresets = computed(() => {
               {{ isWholeFish ? '⚖️ CÂN BÁO GIÁ:' : 'TỔNG TẠM TÍNH:' }}
             </span>
             <div class="price-figures">
+              <span class="dock-original-val hide-mobile" v-if="promoDiscount > 0 && !isWholeFish">
+                {{ formatCurrency(subtotal + (isFreeship ? 0 : 30000)) }}
+              </span>
               <span class="dock-total-val" :style="{ color: currentProduct.accentColor }">
                 {{ isWholeFish ? '~' + formatCurrency(totalPrice) : formatCurrency(totalPrice) }}
               </span>
@@ -110,6 +117,18 @@ const quantityPresets = computed(() => {
             <template v-else>
               <span class="dock-tag freeship" v-if="isFreeship">🚀 Freeship 2H</span>
               <span class="dock-tag" v-else>Phí ship 30k</span>
+            </template>
+            <template v-if="promoDiscount > 0">
+              <span class="dock-tag-dot">•</span>
+              <span class="dock-tag tag-promo-applied" @click="openPromoModal">
+                🎟️ {{ appliedPromoCode }}: -{{ formatCurrency(promoDiscount) }}
+              </span>
+            </template>
+            <template v-else>
+              <span class="dock-tag-dot">•</span>
+              <button class="btn-dock-promo-link" @click="openPromoModal">
+                🎟️ Mã giảm giá
+              </button>
             </template>
           </div>
         </div>
@@ -350,6 +369,49 @@ const quantityPresets = computed(() => {
 .dock-tag.freeship {
   color: #38bdf8;
   font-weight: 700;
+}
+
+.dock-original-val {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.tag-promo {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+}
+
+.tag-promo-applied {
+  color: #10b981;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tag-promo-applied:hover {
+  text-decoration: underline;
+}
+
+.btn-dock-promo-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #38bdf8;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.btn-dock-promo-link:hover {
+  text-decoration: underline;
+  color: #7dd3fc;
 }
 
 .dock-tag-dot {

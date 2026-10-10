@@ -29,6 +29,19 @@ export interface SalmonProduct {
   bestRecipeId: string
 }
 
+export interface PromoCode {
+  code: string
+  title: string
+  description: string
+  type: 'fixed' | 'percent' | 'freeship'
+  value: number
+  minOrderValue: number
+  maxDiscount?: number
+  badge: string
+  icon: string
+  highlight?: boolean
+}
+
 export interface ProcessingOption {
   id: string
   name: string
@@ -789,6 +802,51 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
   }
 ]
 
+export const PROMO_CODES: PromoCode[] = [
+  {
+    code: 'CAHOI50',
+    title: 'Giảm 50.000 đ',
+    description: 'Áp dụng cho mọi đơn từ 300.000 đ',
+    type: 'fixed',
+    value: 50000,
+    minOrderValue: 300000,
+    badge: 'PHỔ BIẾN NHẤT',
+    icon: '🎁',
+    highlight: true
+  },
+  {
+    code: 'FREESHIP',
+    title: 'Miễn Phí Vận Chuyển',
+    description: 'Freeship hỏa tốc 2H toàn thành phố (tiết kiệm 30.000 đ)',
+    type: 'freeship',
+    value: 30000,
+    minOrderValue: 0,
+    badge: 'SHIP 0Đ',
+    icon: '🚀'
+  },
+  {
+    code: 'SALMON10',
+    title: 'Giảm 10% Tối Đa 150K',
+    description: 'Áp dụng cho đơn từ 500.000 đ trở lên',
+    type: 'percent',
+    value: 10,
+    minOrderValue: 500000,
+    maxDiscount: 150000,
+    badge: 'GIẢM 10%',
+    icon: '🔥'
+  },
+  {
+    code: 'TIECVIP',
+    title: 'Giảm 100.000 đ Đơn Tiệc',
+    description: 'Dành riêng cho đơn tiệc đông người từ 1.000.000 đ',
+    type: 'fixed',
+    value: 100000,
+    minOrderValue: 1000000,
+    badge: 'VIP TIỆC TÙNG',
+    icon: '👑'
+  }
+]
+
 export const useSalmonStore = () => {
   const currentProductIndex = useState<number>('currentSalmonIndex', () => 1) // Default: Nauy Tươi Nguyên Tảng
   const quantity = useState<number>('salmonQuantity', () => 1)
@@ -801,6 +859,12 @@ export const useSalmonStore = () => {
   const selectedRecipeId = useState<string>('selectedSalmonRecipeId', () => 'ca-hoi-ap-chao-bo-toi')
   const isRecipeModalOpen = useState<boolean>('isRecipeModalOpen', () => false)
   const isMobileRecipeDrawerOpen = useState<boolean>('isMobileRecipeDrawerOpen', () => false)
+
+  // Promo Code States
+  const appliedPromoCode = useState<string | null>('appliedSalmonPromoCode', () => null)
+  const promoInputText = useState<string>('salmonPromoInputText', () => '')
+  const promoFeedback = useState<{ type: 'success' | 'error' | ''; message: string }>('salmonPromoFeedback', () => ({ type: '', message: '' }))
+  const isPromoModalOpen = useState<boolean>('isSalmonPromoModalOpen', () => false)
 
   const currentProduct = computed(() => {
     return SALMON_CATALOG[currentProductIndex.value] || SALMON_CATALOG[0]
@@ -890,7 +954,7 @@ export const useSalmonStore = () => {
     isMobileRecipeDrawerOpen.value = false
   }
 
-  // Calculate Subtotal & Total
+  // Calculate Subtotal
   const subtotal = computed(() => {
     const p = currentProduct.value
     if (p.isPerKg && p.averageWeightKg && p.unit === 'CON') {
@@ -899,9 +963,31 @@ export const useSalmonStore = () => {
     return p.price * quantity.value
   })
 
-  // Freeship for orders over 500k or >= 3 units
-  const isFreeship = computed(() => {
+  // Current promo item computed
+  const currentPromo = computed(() => {
+    if (!appliedPromoCode.value) return null
+    return PROMO_CODES.find(p => p.code.toUpperCase() === appliedPromoCode.value?.toUpperCase()) || null
+  })
+
+  // Check if current promo meets minimum order value requirement
+  const isPromoValid = computed(() => {
+    const promo = currentPromo.value
+    if (!promo) return true
+    return subtotal.value >= promo.minOrderValue
+  })
+
+  // Automatic freeship for orders over 500k or >= 3 units
+  const isAutoFreeship = computed(() => {
     return subtotal.value >= 500000 || quantity.value >= 3
+  })
+
+  // Effective Freeship (either auto or via FREESHIP voucher)
+  const isFreeship = computed(() => {
+    return isAutoFreeship.value || (currentPromo.value?.type === 'freeship' && isPromoValid.value)
+  })
+
+  const baseShippingFee = computed(() => {
+    return isAutoFreeship.value ? 0 : 30000
   })
 
   const shippingFee = computed(() => {
@@ -909,8 +995,39 @@ export const useSalmonStore = () => {
     return 30000
   })
 
+  // Promo discount amount
+  const promoDiscount = computed(() => {
+    const promo = currentPromo.value
+    if (!promo) return 0
+
+    // If order does not reach minOrderValue
+    if (subtotal.value < promo.minOrderValue) {
+      return 0
+    }
+
+    if (promo.type === 'freeship') {
+      // Saved shipping fee (if not already auto-freeship)
+      return isAutoFreeship.value ? 0 : 30000
+    }
+
+    if (promo.type === 'fixed') {
+      return Math.min(promo.value, subtotal.value)
+    }
+
+    if (promo.type === 'percent') {
+      const raw = Math.round(subtotal.value * (promo.value / 100))
+      return promo.maxDiscount ? Math.min(raw, promo.maxDiscount) : raw
+    }
+
+    return 0
+  })
+
   const totalPrice = computed(() => {
-    return subtotal.value + shippingFee.value
+    if (currentPromo.value?.type === 'freeship') {
+      return subtotal.value
+    }
+    const final = subtotal.value + shippingFee.value - promoDiscount.value
+    return Math.max(0, final)
   })
 
   const formatCurrency = (val: number) => {
@@ -918,6 +1035,62 @@ export const useSalmonStore = () => {
       style: 'currency',
       currency: 'VND'
     }).format(val)
+  }
+
+  const applyPromoCode = (code: string) => {
+    const cleanCode = (code || '').trim().toUpperCase()
+    if (!cleanCode) {
+      promoFeedback.value = { type: 'error', message: 'Vui lòng nhập mã khuyến mãi.' }
+      return false
+    }
+
+    const found = PROMO_CODES.find(p => p.code === cleanCode)
+    if (!found) {
+      promoFeedback.value = {
+        type: 'error',
+        message: `Mã "${cleanCode}" không tồn tại. Thử mã demo: CAHOI50, FREESHIP, SALMON10, TIECVIP`
+      }
+      return false
+    }
+
+    if (subtotal.value < found.minOrderValue) {
+      promoFeedback.value = {
+        type: 'error',
+        message: `Mã ${found.code} yêu cầu đơn từ ${formatCurrency(found.minOrderValue)} (Đơn hiện tại: ${formatCurrency(subtotal.value)})`
+      }
+      return false
+    }
+
+    appliedPromoCode.value = found.code
+    promoInputText.value = found.code
+    promoFeedback.value = {
+      type: 'success',
+      message: `Đã áp dụng mã ${found.code}: ${found.title}`
+    }
+    return true
+  }
+
+  const removePromoCode = () => {
+    appliedPromoCode.value = null
+    promoInputText.value = ''
+    promoFeedback.value = { type: '', message: '' }
+  }
+
+  const openPromoModal = () => {
+    isPromoModalOpen.value = true
+  }
+
+  const closePromoModal = () => {
+    isPromoModalOpen.value = false
+  }
+
+  const selectAndApplyPromo = (code: string) => {
+    const ok = applyPromoCode(code)
+    if (ok) {
+      isPromoModalOpen.value = false
+      isOrderModalOpen.value = true
+    }
+    return ok
   }
 
   const setQuantity = (q: number) => {
@@ -943,6 +1116,7 @@ export const useSalmonStore = () => {
     catalog: SALMON_CATALOG,
     processingOptions: PROCESSING_OPTIONS,
     recipes: SALMON_RECIPES,
+    promoCodes: PROMO_CODES,
     currentProductRecipes,
     displayedRecipes,
     recipeFilterMode,
@@ -958,6 +1132,14 @@ export const useSalmonStore = () => {
     isMobileRecipeDrawerOpen,
     isPriceTableOpen,
     isOrderModalOpen,
+    isPromoModalOpen,
+    appliedPromoCode,
+    promoInputText,
+    promoFeedback,
+    currentPromo,
+    isPromoValid,
+    promoDiscount,
+    isAutoFreeship,
     isFreeship,
     shippingFee,
     subtotal,
@@ -974,6 +1156,11 @@ export const useSalmonStore = () => {
     closeRecipe,
     orderRecipeSalmon,
     openMobileRecipeDrawer,
-    closeMobileRecipeDrawer
+    closeMobileRecipeDrawer,
+    applyPromoCode,
+    removePromoCode,
+    openPromoModal,
+    closePromoModal,
+    selectAndApplyPromo
   }
 }

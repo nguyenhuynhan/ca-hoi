@@ -27,6 +27,10 @@ export default defineEventHandler(async (event) => {
       quantity: body.quantity,
       customerName: body.customer?.name,
       customerPhone: body.customer?.phone,
+      subtotal: body.subtotal,
+      shippingFee: body.shippingFee,
+      promoCode: body.promoCode || null,
+      promoDiscount: body.promoDiscount || 0,
       totalAmount: amount
     },
     qrUrl

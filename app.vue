@@ -54,6 +54,9 @@ onMounted(() => {
 
     <!-- Modal Chi Tiết Món Ăn & Công Thức Nấu (Nền mờ đè lên background) -->
     <RecipeDetailModal />
+
+    <!-- Modal Danh Sách Mã Khuyến Mãi / Voucher (Demo) -->
+    <PromoModal />
   </div>
 </template>
 

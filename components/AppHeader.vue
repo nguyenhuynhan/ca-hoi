@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { currentProduct, isPriceTableOpen } = useSalmonStore()
+const { currentProduct, isPriceTableOpen, openPromoModal, appliedPromoCode } = useSalmonStore()
 const showHotlineAlert = ref(false)
 
 const copyHotline = () => {
@@ -53,6 +53,18 @@ const togglePriceTable = () => {
 
       <!-- Action Group -->
       <div class="header-actions">
+        <!-- Mã Ưu Đãi Button -->
+        <button 
+          class="action-btn glass-pill promo-btn" 
+          @click="openPromoModal"
+          title="Xem các mã khuyến mãi & giảm giá demo"
+        >
+          <span class="btn-icon">🎟️</span>
+          <span>Mã Ưu Đãi</span>
+          <span v-if="appliedPromoCode" class="active-dot-badge">✓</span>
+          <span v-else class="promo-count-badge hide-mobile">4 mã</span>
+        </button>
+
         <!-- Bảng Giá Button -->
         <button 
           class="action-btn glass-pill price-table-btn" 
@@ -207,6 +219,38 @@ const togglePriceTable = () => {
   background: rgba(56, 189, 248, 0.15);
   border-color: var(--border-active);
   transform: translateY(-1px);
+}
+
+.promo-btn {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #a7f3d0;
+}
+
+.promo-btn:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+}
+
+.promo-count-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  background: #10b981;
+  color: #041021;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  margin-left: 2px;
+}
+
+.active-dot-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  background: #34d399;
+  color: #041021;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  margin-left: 2px;
 }
 
 .price-table-btn {
