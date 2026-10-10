@@ -6,8 +6,8 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "deploy": "nuxt build && npx wrangler pages deploy dist --project-name=ca-hoi",
+    "preview": "npx wrangler dev",
+    "deploy": "nuxt build && npx wrangler deploy",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

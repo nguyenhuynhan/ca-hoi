@@ -290,13 +290,6 @@ export const SALMON_CATALOG: SalmonProduct[] = [
 
 export const PROCESSING_OPTIONS: ProcessingOption[] = [
   {
-    id: 'sashimi',
-    name: 'Cắt Lát Sashimi Chuẩn Nhật',
-    badge: 'Tặng Gừng Hồng & Wasabi',
-    description: 'Thái lát 0.5cm chuẩn ăn sống, xếp khay lá tía tô',
-    icon: '🍣'
-  },
-  {
     id: 'steak',
     name: 'Cắt Khúc Steak Áp Chảo',
     badge: 'Dày 2.5 – 3cm',
@@ -320,58 +313,6 @@ export const PROCESSING_OPTIONS: ProcessingOption[] = [
 ]
 
 export const SALMON_RECIPES: SalmonRecipe[] = [
-  {
-    id: 'sashimi-chuan-nhat',
-    name: 'Sashimi Cá Hồi Tươi Chuẩn Nhật',
-    shortName: 'Sashimi Chuẩn Nhật',
-    category: 'Ăn sống tươi',
-    badge: 'Được yêu thích nhất',
-    cookTime: '5 Phút',
-    difficulty: 'Rất dễ',
-    servings: '2 - 3 người',
-    calories: '280 kcal',
-    image: '/images/dishes/sashimi.jpg',
-    recommendedProductId: 'nauy-nguyen-tang',
-    recommendedProductName: 'Cá Hồi Nauy Tươi Nguyên Tảng',
-    recommendedCutReason: 'Vân mỡ cẩm thạch dày, thịt béo ngậy ngọt lịm tan chảy',
-    tagline: 'Vân mỡ cẩm thạch óng ánh, béo ngậy tan ngay đầu lưỡi',
-    description: 'Đỉnh cao của ẩm thực tươi sống. Miếng cá hồi Na Uy tươi rói được thái lát dứt khoát dày 0.5cm, đặt trên đá lạnh tinh khiết, hòa quyện trọn vẹn cùng vị cay nồng của wasabi tươi và nước tương Shoyu Nhật Bản.',
-    ingredients: [
-      { name: 'Cá hồi Na Uy tươi Sashimi Grade', amount: '250g - 300g', highlight: true },
-      { name: 'Gừng hồng chua ngọt Nhật (Gari)', amount: '30g' },
-      { name: 'Wasabi tươi cay nồng', amount: '1 tuýp nhỏ' },
-      { name: 'Nước tương Kikkoman Nhật Bản', amount: '30ml' },
-      { name: 'Củ cải trắng bào sợi mỏng', amount: '1 củ nhỏ' },
-      { name: 'Lá tía tô Nhật tươi xanh (Shiso)', amount: '6 - 8 lá' }
-    ],
-    steps: [
-      {
-        step: 1,
-        title: 'Thấm khô & Giữ lạnh sâu',
-        detail: 'Dùng khăn giấy chuyên dụng cho hải sản thấm khô nhẹ hai mặt miếng cá. Giữ miếng cá thật lạnh ở nhiệt độ 0-2°C trên đĩa đá trước khi cắt.',
-        time: '1 phút'
-      },
-      {
-        step: 2,
-        title: 'Cắt lát dứt khoát một chiều',
-        detail: 'Đặt miếng cá lên thớt sạch, nghiêng lưỡi dao sashimi 45 độ. Kéo dứt khoát một đường từ cuống đến mũi dao, cắt lát dày 0.5 - 0.7cm theo góc nghiêng thớ thịt.',
-        time: '2 phút'
-      },
-      {
-        step: 3,
-        title: 'Trình bày đĩa lạnh nghệ thuật',
-        detail: 'Rải đá bào nhuyễn lên đĩa gốm sâu lòng, trải lá tía tô xanh. Xếp các lát cá hồi uốn lượn hình cánh hoa, bên cạnh là củ cải sợi, gừng hồng và đóa wasabi tươi.',
-        time: '2 phút'
-      },
-      {
-        step: 4,
-        title: 'Thưởng thức đúng điệu',
-        detail: 'Chấm nhẹ góc lát cá vào tương Nhật pha chút wasabi, ăn kèm lá tía tô và lát gừng hồng để cảm nhận trọn vẹn vị béo ngậy ngọt lịm của biển cả.',
-        time: 'Thưởng thức'
-      }
-    ],
-    chefTip: 'Dao cắt phải cực kỳ sắc bén và kéo một chiều, tuyệt đối không cứa qua lại để giữ nguyên cấu trúc thớ thịt mọng nước và độ bóng bẩy của lát cá.'
-  },
   {
     id: 'ca-hoi-ap-chao-bo-toi',
     name: 'Cá Hồi Áp Chảo Sốt Bơ Tỏi Chanh Vàng',
@@ -735,12 +676,12 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
 export const useSalmonStore = () => {
   const currentProductIndex = useState<number>('currentSalmonIndex', () => 1) // Default: Nauy Tươi Nguyên Tảng
   const quantity = useState<number>('salmonQuantity', () => 1)
-  const selectedProcessing = useState<string>('salmonProcessing', () => 'sashimi')
+  const selectedProcessing = useState<string>('salmonProcessing', () => 'steak')
   const isPriceTableOpen = useState<boolean>('isPriceTableOpen', () => false)
   const isOrderModalOpen = useState<boolean>('isOrderModalOpen', () => false)
 
   // Recipe Feature States
-  const selectedRecipeId = useState<string>('selectedSalmonRecipeId', () => 'sashimi-chuan-nhat')
+  const selectedRecipeId = useState<string>('selectedSalmonRecipeId', () => 'ca-hoi-ap-chao-bo-toi')
   const isRecipeModalOpen = useState<boolean>('isRecipeModalOpen', () => false)
   const isMobileRecipeDrawerOpen = useState<boolean>('isMobileRecipeDrawerOpen', () => false)
 
@@ -849,12 +790,18 @@ export const useSalmonStore = () => {
     if (quantity.value > 1) quantity.value--
   }
 
+  const isWholeFish = computed(() => {
+    const p = currentProduct.value
+    return p.unit === 'CON' || p.id.includes('nguyen-con')
+  })
+
   return {
     catalog: SALMON_CATALOG,
     processingOptions: PROCESSING_OPTIONS,
     recipes: SALMON_RECIPES,
     currentProductIndex,
     currentProduct,
+    isWholeFish,
     quantity,
     selectedProcessing,
     currentProcessing,

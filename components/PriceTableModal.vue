@@ -39,7 +39,6 @@ const selectAndClose = (idx: number) => {
             <thead>
               <tr>
                 <th class="th-stt">STT</th>
-                <th class="th-sku">Mã SKU</th>
                 <th class="th-name">Sản phẩm / Thương hiệu</th>
                 <th class="th-unit">ĐVT</th>
                 <th class="th-size">Đường kính / Cỡ</th>
@@ -59,13 +58,9 @@ const selectAndClose = (idx: number) => {
                 <!-- STT -->
                 <td class="td-stt">{{ idx + 1 }}</td>
 
-                <!-- SKU -->
-                <td class="td-sku font-mono">{{ item.sku }}</td>
-
                 <!-- Tên Sản Phẩm -->
                 <td class="td-name">
                   <div class="name-wrap">
-                    <span class="product-flag">{{ item.flag }}</span>
                     <div>
                       <strong class="item-full-name">{{ item.name }}</strong>
                       <span class="item-species hide-mobile">{{ item.species }}</span>
@@ -101,6 +96,9 @@ const selectAndClose = (idx: number) => {
                   <span class="price-highlight">
                     {{ formatCurrency(item.price) }}
                   </span>
+                  <div v-if="item.unit === 'CON' || item.id.includes('nguyen-con')" class="whole-fish-badge-table">
+                    ⚖️ Cân thực tế báo giá
+                  </div>
                 </td>
 
                 <!-- Thao tác chọn -->
@@ -122,6 +120,7 @@ const selectAndClose = (idx: number) => {
         <div class="modal-footer">
           <div class="footer-notes">
             <span>* Giá chào trên đã bao gồm VAT & công cắt thái sơ chế chuẩn Sashimi/Steak.</span>
+            <span>* Đối với cá nguyên con: Báo giá chuẩn xác theo trọng lượng cân thực tế (~5 - 6kg/con) trước khi giao.</span>
             <span>* Giao hàng hỏa tốc trong thùng xốp ướp đá giữ lạnh 0°C – 2°C toàn thành phố.</span>
           </div>
 
@@ -352,6 +351,18 @@ const selectAndClose = (idx: number) => {
   font-size: 0.95rem;
   font-weight: 900;
   color: #facc15;
+}
+
+.whole-fish-badge-table {
+  font-size: 0.62rem;
+  color: #fdba74;
+  font-weight: 700;
+  margin-top: 2px;
+  background: rgba(255, 107, 74, 0.18);
+  border: 1px solid rgba(255, 107, 74, 0.35);
+  padding: 1px 4px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .btn-pick {

@@ -46,10 +46,8 @@ const togglePriceTable = () => {
 
       <!-- Center Status Pill -->
       <div class="status-pill glass-pill hide-tablet">
-        <span class="status-flag">{{ currentProduct.flag }}</span>
         <span class="status-text">
           Đang xem: <strong :style="{ color: currentProduct.accentColor }">{{ currentProduct.shortName }}</strong>
-          <span class="sku-tag">SKU: {{ currentProduct.sku }}</span>
         </span>
       </div>
 

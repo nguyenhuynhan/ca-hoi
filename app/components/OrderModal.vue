@@ -2,6 +2,7 @@
 const { 
   currentProduct, 
   currentProcessing,
+  isWholeFish,
   quantity, 
   isFreeship,
   shippingFee,
@@ -112,21 +113,36 @@ const submitOrder = async () => {
             <img :src="currentProduct.image" :alt="currentProduct.name" class="summary-thumb" />
             <div class="summary-details">
               <div class="summary-name-row">
-                <span class="product-flag">{{ currentProduct.flag }}</span>
                 <span class="summary-prod-name">{{ currentProduct.name }}</span>
               </div>
               <div class="summary-meta-row">
-                <span class="meta-tag">SKU: {{ currentProduct.sku }}</span>
                 <span class="meta-tag">SL: {{ quantity }} {{ currentProduct.unit }}</span>
                 <span class="meta-tag proc-tag">🔪 {{ currentProcessing.name }}</span>
+                <span v-if="isWholeFish" class="meta-tag whole-tag">⚖️ Cân thực tế</span>
               </div>
             </div>
             <div class="summary-price-col">
               <span class="sum-price-val" :style="{ color: currentProduct.accentColor }">
-                {{ formatCurrency(totalPrice) }}
+                <template v-if="isWholeFish">
+                  ~{{ formatCurrency(totalPrice) }}
+                </template>
+                <template v-else>
+                  {{ formatCurrency(totalPrice) }}
+                </template>
               </span>
-              <span class="sum-ship-val" v-if="isFreeship">Freeship 2H</span>
+              <span class="sum-ship-val" v-if="isWholeFish">
+                Ước tính (báo giá chuẩn sau khi cân)
+              </span>
+              <span class="sum-ship-val" v-else-if="isFreeship">Freeship 2H</span>
               <span class="sum-ship-val" v-else>+30k ship</span>
+            </div>
+          </div>
+
+          <!-- Thông báo báo giá riêng cho cá nguyên con -->
+          <div v-if="isWholeFish" class="whole-fish-order-notice">
+            <span class="notice-icon">⚖️</span>
+            <div class="notice-text">
+              <strong>Lưu ý cá nguyên con:</strong> Cần phải cân thực tế (~5 - 6kg/con) rồi kho mới báo giá chính xác cho bạn được. Đơn hàng gửi đi để đặt giữ cá, kho sẽ gọi điện/Zalo báo cân nặng và giá chuẩn trước khi giao!
             </div>
           </div>
 
@@ -206,6 +222,7 @@ const submitOrder = async () => {
               }"
             >
               <span v-if="isSubmitting">Đang xử lý đơn hàng...</span>
+              <span v-else-if="isWholeFish">⚡ GỬI ĐƠN & NHẬN BÁO GIÁ CÂN THỰC TẾ</span>
               <span v-else>XÁC NHẬN ĐẶT HÀNG — {{ formatCurrency(totalPrice) }}</span>
             </button>
           </form>
@@ -379,6 +396,41 @@ const submitOrder = async () => {
 .proc-tag {
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.12);
+}
+
+.whole-tag {
+  color: #fdba74;
+  background: rgba(255, 107, 74, 0.2);
+  border: 1px solid rgba(255, 107, 74, 0.35);
+  font-weight: 700;
+}
+
+.whole-fish-order-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 107, 74, 0.12);
+  border: 1px solid rgba(255, 107, 74, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+}
+
+.whole-fish-order-notice .notice-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.whole-fish-order-notice .notice-text {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: #fed7aa;
+}
+
+.whole-fish-order-notice .notice-text strong {
+  color: #ffffff;
+  font-weight: 800;
 }
 
 .summary-price-col {
@@ -589,6 +641,27 @@ const submitOrder = async () => {
 @media (max-width: 600px) {
   .order-fields-grid {
     grid-template-columns: 1fr;
+  }
+
+  .item-summary-card {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .summary-details {
+    flex: 1;
+    min-width: 170px;
+  }
+
+  .summary-price-col {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 6px;
+    margin-top: 4px;
   }
 }
 </style>

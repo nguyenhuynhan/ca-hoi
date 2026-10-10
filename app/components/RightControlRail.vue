@@ -15,86 +15,39 @@ const handleRecipeClick = (id: string) => {
 
 <template>
   <aside class="side-menu-rail right-rail" aria-label="Menu gợi ý món ngon từ cá hồi">
-    <!-- Header -->
+    <!-- Menu Header: Nhỏ gọn đồng bộ với menu trái -->
     <div class="menu-header">
-      <div class="header-title-row">
-        <span class="chef-hat-icon">🍳</span>
-        <h2 class="menu-title">MÓN NGON GỢI Ý</h2>
-      </div>
-      <span class="menu-subtitle">8 công thức chuẩn vị • Bấm xem cách nấu</span>
+      <h2 class="menu-title">MÓN NGON</h2>
     </div>
 
-    <!-- Recipes List: Bám sát mép phải màn hình, bo cong góc trái -->
-    <nav class="vertical-menu-container" role="tablist" aria-label="Danh sách món ngon có thể nấu">
+    <!-- Vertical Menu: Các item tách rời, ôm sát chữ, vuông phải bo tròn trái, kính mờ iOS 27 -->
+    <nav class="vertical-menu-container" role="tablist" aria-label="Danh sách món ngon chế biến từ cá hồi">
       <button 
         v-for="dish in recipes" 
         :key="dish.id"
         role="tab"
         :aria-selected="selectedRecipeId === dish.id"
-        class="recipe-dish-row"
+        class="menu-item-pill"
         :class="{ 
           'is-active': selectedRecipeId === dish.id,
-          'is-match-product': dish.recommendedProductId === currentProduct.id 
+          'is-match': dish.recommendedProductId === currentProduct.id 
         }"
         @click="handleRecipeClick(dish.id)"
-        :title="`${dish.name} — Bấm để xem hình & cách nấu`"
+        :title="`${dish.name} — Bấm xem công thức`"
       >
-        <!-- Thanh chỉ báo active ở mép phải menu -->
-        <span class="item-active-bar" v-if="selectedRecipeId === dish.id"></span>
+        <!-- Thanh active chỉ báo phát sáng ở mép phải -->
+        <span class="pill-active-edge" v-if="selectedRecipeId === dish.id"></span>
 
-        <!-- Nội dung món ăn -->
-        <div class="item-content">
-          <!-- Thumbnail ảnh món ăn thực tế -->
-          <div class="dish-thumb-wrap">
-            <img 
-              :src="dish.image" 
-              :alt="dish.shortName" 
-              class="dish-thumb-img" 
-              loading="lazy" 
-            />
-            <span class="dish-cook-badge">{{ dish.cookTime }}</span>
-          </div>
+        <!-- Badge thời gian nấu (chỉ hiện trên desktop, ẩn trên mobile để tối giản) -->
+        <span class="pill-cook-tag hide-mobile">{{ dish.cookTime }}</span>
 
-          <!-- Text group -->
-          <div class="dish-text-group">
-            <div class="dish-top-line">
-              <span class="dish-name">{{ dish.shortName }}</span>
-            </div>
-            
-            <div class="dish-tags-row">
-              <span 
-                v-if="dish.recommendedProductId === currentProduct.id" 
-                class="tag-match-cur"
-              >
-                ✨ Hợp cá đang xem
-              </span>
-              <span v-else class="dish-cat-tag">
-                {{ dish.category }}
-              </span>
-            </div>
-          </div>
+        <!-- Tên món ăn: 1 dòng duy nhất -->
+        <span class="pill-name">{{ dish.shortName }}</span>
 
-          <!-- Action hint arrow -->
-          <span class="dish-arrow">›</span>
-        </div>
+        <!-- Chấm chỉ báo nhỏ nếu món này hợp nhất với loại cá đang chọn -->
+        <span v-if="dish.recommendedProductId === currentProduct.id" class="pill-match-dot hide-mobile" title="Chuẩn vị nhất cho cá đang xem"></span>
       </button>
     </nav>
-
-    <!-- Trust / Quality Badges Mini Card -->
-    <div class="trust-mini-card hide-mobile">
-      <div class="trust-row">
-        <span class="trust-icon">✈️</span>
-        <span class="trust-text">Cá tươi bay hàng không 24h</span>
-      </div>
-      <div class="trust-row">
-        <span class="trust-icon">🔪</span>
-        <span class="trust-text">Lọc da, rút xương miễn phí</span>
-      </div>
-      <div class="trust-row">
-        <span class="trust-icon">🧊</span>
-        <span class="trust-text">Ướp đá thùng xốp giao 2H</span>
-      </div>
-    </div>
   </aside>
 </template>
 
@@ -103,270 +56,191 @@ const handleRecipeClick = (id: string) => {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
-  max-height: 100%;
-  padding: 2px 0 2px 2px;
-  box-sizing: border-box;
-}
-
-.menu-header {
-  padding: 0 12px 6px 0;
-  display: flex;
-  flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
-  text-align: right;
+  width: fit-content;
+  max-width: 100%;
+  height: auto;
+  padding: 4px 0;
+  box-sizing: border-box;
+  user-select: none;
+  z-index: 25;
+}
+
+/* Menu Header */
+.menu-header {
+  padding-right: 6px;
+  margin-bottom: 5px;
   flex-shrink: 0;
-}
-
-.header-title-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.chef-hat-icon {
-  font-size: 0.95rem;
+  text-align: right;
 }
 
 .menu-title {
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 800;
+  color: rgba(254, 205, 211, 0.9);
   letter-spacing: 0.08em;
-  color: var(--accent-salmon);
+  margin: 0;
   text-transform: uppercase;
 }
 
-.menu-subtitle {
-  font-size: 0.62rem;
-  color: var(--text-muted);
-}
-
+/* Vertical Menu Container: Các item tách rời, căn phải */
 .vertical-menu-container {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-left: 4px;
-  flex: 1;
+  align-items: flex-end;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
-/* Vuông bên phải bám mép màn hình, bo tròn bên trái */
-.recipe-dish-row {
+/* Menu Item Pill:
+   - Chiều cao đúng 1 dòng (line-height 1, padding vừa vặn)
+   - Tách rời nhau (gap 5px / mobile 4px)
+   - Không cố định chiều dài, co giãn theo chữ (width: fit-content)
+   - Vuông bên phải (bám mép màn hình), bo tròn bên trái (border-radius: 9999px 0 0 9999px)
+   - Nền đầm bớt trong suốt (0.88) để chữ rõ ràng sắc nét, không bị lẫn với hình ảnh bên dưới
+*/
+.menu-item-pill {
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  padding: 5px 10px 5px 8px;
-  background: rgba(4, 16, 33, 0.55);
-  border: 1px solid rgba(56, 189, 248, 0.1);
+  justify-content: flex-end;
+  gap: 6px;
+  width: fit-content;
+  max-width: fit-content;
+  padding: 5px 8px 5px 12px;
+  background: rgba(6, 20, 40, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-right: none;
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  color: var(--text-secondary);
+  color: #f1f5f9;
   cursor: pointer;
+  outline: none;
   text-align: right;
+  line-height: 1;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
-.recipe-dish-row:hover {
-  background: rgba(14, 38, 70, 0.85);
+.menu-item-pill:hover {
+  background: rgba(28, 26, 46, 0.94);
+  border-color: rgba(255, 107, 74, 0.65);
   color: #ffffff;
-  border-color: rgba(255, 107, 74, 0.4);
+  transform: translateX(-3px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Active State: Hiệu ứng kính sáng iOS */
+.menu-item-pill.is-active {
+  background: rgba(48, 18, 14, 0.96);
+  border-color: rgba(255, 107, 74, 0.85);
+  border-right: none;
+  color: #ffffff;
   transform: translateX(-4px);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 20px rgba(255, 107, 74, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.recipe-dish-row.is-match-product {
-  border-color: rgba(255, 107, 74, 0.35);
-  background: rgba(25, 20, 28, 0.75);
+.menu-item-pill.is-match {
+  border-color: rgba(255, 107, 74, 0.55);
 }
 
-.recipe-dish-row.is-active {
-  background: linear-gradient(270deg, rgba(45, 18, 14, 0.95) 0%, rgba(14, 25, 48, 0.9) 100%);
-  color: #ffffff;
-  border-color: var(--accent-salmon);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 14px rgba(255, 107, 74, 0.2);
-  transform: translateX(-5px);
-}
-
-.item-active-bar {
+/* Dải chỉ báo active ở mép phải */
+.pill-active-edge {
   position: absolute;
+  right: 0;
   top: 0;
   bottom: 0;
-  right: 0;
-  width: 4px;
-  background: var(--accent-salmon);
-  box-shadow: 0 0 12px var(--accent-salmon);
+  width: 3.5px;
+  background: #ff6b4a;
+  box-shadow: 0 0 10px #ff6b4a;
 }
 
-.item-content {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  width: 100%;
-}
-
-/* THUMBNAIL HÌNH MÓN ĂN */
-.dish-thumb-wrap {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  flex-shrink: 0;
-  order: 3;
-}
-
-.dish-thumb-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.recipe-dish-row:hover .dish-thumb-img {
-  transform: scale(1.15);
-}
-
-.dish-cook-badge {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.75);
-  font-size: 0.5rem;
-  font-weight: 800;
-  color: #fef08a;
-  text-align: center;
-  line-height: 1.2;
-}
-
-/* TEXT GROUP */
-.dish-text-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  min-width: 0;
-  order: 2;
-  flex: 1;
-}
-
-.dish-top-line {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  width: 100%;
-}
-
-.dish-name {
-  font-size: 0.74rem;
+/* Tên món: 1 dòng duy nhất */
+.pill-name {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
   font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-  color: #e2e8f0;
-}
-
-.recipe-dish-row.is-active .dish-name,
-.recipe-dish-row:hover .dish-name {
-  color: #ffffff;
-  font-weight: 800;
-}
-
-.dish-tags-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.dish-cat-tag {
-  font-size: 0.6rem;
-  color: #94a3b8;
   line-height: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  transition: color 0.18s;
 }
 
-.tag-match-cur {
-  font-size: 0.58rem;
+.menu-item-pill:hover .pill-name,
+.menu-item-pill.is-active .pill-name {
+  color: #ffffff;
+}
+
+.menu-item-pill.is-active .pill-name {
   font-weight: 800;
-  color: #fdba74;
-  background: rgba(255, 107, 74, 0.2);
-  padding: 1px 4px;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 107, 74, 0.35);
-  line-height: 1.1;
+}
+
+/* Badge Thời gian nấu (chỉ hiện desktop) */
+.pill-cook-tag {
+  font-size: 0.56rem;
+  font-weight: 700;
+  color: #fef08a;
+  background: rgba(234, 179, 8, 0.18);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  padding: 1px 5px;
+  border-radius: 9999px;
+  line-height: 1;
   white-space: nowrap;
-}
-
-.dish-arrow {
-  order: 1;
-  font-size: 0.95rem;
-  color: #64748b;
-  font-weight: 300;
-  transition: transform 0.2s, color 0.2s;
-  padding-left: 2px;
-}
-
-.recipe-dish-row:hover .dish-arrow {
-  color: var(--accent-salmon);
-  transform: translateX(-2px);
-}
-
-.trust-mini-card {
-  margin-top: 6px;
-  padding: 6px 10px;
-  background: rgba(6, 20, 39, 0.6);
-  border: 1px solid rgba(56, 189, 248, 0.12);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   flex-shrink: 0;
 }
 
-.trust-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.63rem;
-  color: var(--text-secondary);
+.pill-match-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ff6b4a;
+  box-shadow: 0 0 6px #ff6b4a;
+  flex-shrink: 0;
+  display: inline-block;
 }
 
-.trust-icon {
-  font-size: 0.7rem;
-}
-
+/* Mobile Responsive: Tối giản hoàn toàn, không thumbnail, không thời gian nấu */
 @media (max-width: 768px) {
+  .side-menu-rail {
+    padding: 2px 0;
+  }
+
   .menu-header {
-    padding-right: 8px;
+    padding-right: 4px;
+    margin-bottom: 3px;
   }
+
   .menu-title {
-    font-size: 0.7rem;
+    font-size: 0.56rem;
   }
-  .recipe-dish-row {
-    padding: 5px 8px 5px 6px;
+
+  .vertical-menu-container {
+    gap: 4px;
   }
-  .dish-name {
-    font-size: 0.66rem;
+
+  .menu-item-pill {
+    padding: 3.5px 6px 3.5px 7px;
+    gap: 4px;
+    border-top-left-radius: 9999px;
+    border-bottom-left-radius: 9999px;
   }
-  .dish-thumb-wrap {
-    width: 30px;
-    height: 30px;
+
+  .pill-name {
+    font-size: 0.55rem;
   }
-  .tag-match-cur,
-  .dish-cat-tag {
-    font-size: 0.54rem;
+
+  .pill-active-edge {
+    width: 2.5px;
   }
 }
 </style>
