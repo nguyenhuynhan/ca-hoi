@@ -2,6 +2,7 @@
 const { 
   catalog,
   recipes,
+  currentProductRecipes,
   currentProduct, 
   currentProductIndex,
   setProductIndex,
@@ -58,8 +59,8 @@ const closeAllDrawers = () => {
 
 // Open top recipe for current salmon
 const openCurrentFishRecipe = () => {
-  const match = recipes.find(r => r.recommendedProductId === currentProduct.value.id) || recipes[0]
-  openRecipe(match.id)
+  const recipeId = currentProduct.value.bestRecipeId || currentProductRecipes.value[0]?.id || recipes[0].id
+  openRecipe(recipeId)
 }
 
 // 3D Perspective Tilt on Mouse Movement (Desktop only)

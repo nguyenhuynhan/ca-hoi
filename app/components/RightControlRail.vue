@@ -2,6 +2,9 @@
 const { 
   recipes, 
   currentProduct, 
+  currentProductRecipes,
+  displayedRecipes,
+  recipeFilterMode,
   selectedRecipeId, 
   openRecipe,
   closeMobileRecipeDrawer 
@@ -11,26 +14,44 @@ const handleRecipeClick = (id: string) => {
   openRecipe(id)
   closeMobileRecipeDrawer()
 }
+
+const toggleFilterMode = () => {
+  recipeFilterMode.value = recipeFilterMode.value === 'matched' ? 'all' : 'matched'
+}
 </script>
 
 <template>
   <aside class="side-menu-rail right-rail" aria-label="Menu gợi ý món ngon từ cá hồi">
     <!-- Menu Header: Nhỏ gọn đồng bộ với menu trái -->
     <div class="menu-header">
-      <h2 class="menu-title">MÓN NGON</h2>
+      <div class="menu-header-flex">
+        <button 
+          type="button"
+          class="filter-toggle-pill"
+          :class="{ 'is-all': recipeFilterMode === 'all' }"
+          @click="toggleFilterMode"
+          :title="recipeFilterMode === 'matched' ? 'Bấm xem tất cả 7 món ngon' : 'Bấm chỉ lọc các món hợp với cá đang chọn'"
+        >
+          <span class="filter-dot"></span>
+          <span class="filter-label hide-mobile">{{ recipeFilterMode === 'matched' ? `${displayedRecipes.length} món hợp cá` : 'Tất cả (7 món)' }}</span>
+          <span class="filter-label hide-desktop">{{ recipeFilterMode === 'matched' ? `${displayedRecipes.length} món` : 'Tất cả' }}</span>
+        </button>
+        <h2 class="menu-title">MÓN NGON</h2>
+      </div>
     </div>
 
     <!-- Vertical Menu: Các item tách rời, ôm sát chữ, vuông phải bo tròn trái, kính mờ iOS 27 -->
     <nav class="vertical-menu-container" role="tablist" aria-label="Danh sách món ngon chế biến từ cá hồi">
       <button 
-        v-for="dish in recipes" 
+        v-for="dish in displayedRecipes" 
         :key="dish.id"
         role="tab"
         :aria-selected="selectedRecipeId === dish.id"
         class="menu-item-pill"
         :class="{ 
           'is-active': selectedRecipeId === dish.id,
-          'is-match': dish.recommendedProductId === currentProduct.id 
+          'is-match': dish.id === currentProduct.bestRecipeId,
+          'is-incompatible': !currentProduct.recipeIds?.includes(dish.id)
         }"
         @click="handleRecipeClick(dish.id)"
         :title="`${dish.name} — Bấm xem công thức`"
@@ -44,8 +65,12 @@ const handleRecipeClick = (id: string) => {
         <!-- Tên món ăn: 1 dòng duy nhất -->
         <span class="pill-name">{{ dish.shortName }}</span>
 
-        <!-- Chấm chỉ báo nhỏ nếu món này hợp nhất với loại cá đang chọn -->
-        <span v-if="dish.recommendedProductId === currentProduct.id" class="pill-match-dot hide-mobile" title="Chuẩn vị nhất cho cá đang xem"></span>
+        <!-- Chấm chỉ báo nhỏ nếu món này chuẩn vị nhất cho loại cá đang chọn -->
+        <span 
+          v-if="dish.id === currentProduct.bestRecipeId" 
+          class="pill-match-dot hide-mobile" 
+          title="Chuẩn vị nhất cho cá đang xem"
+        ></span>
       </button>
     </nav>
   </aside>
@@ -74,6 +99,13 @@ const handleRecipeClick = (id: string) => {
   text-align: right;
 }
 
+.menu-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .menu-title {
   font-family: var(--font-display);
   font-size: 0.76rem;
@@ -82,6 +114,58 @@ const handleRecipeClick = (id: string) => {
   letter-spacing: 0.08em;
   margin: 0;
   text-transform: uppercase;
+}
+
+/* Filter toggle pill */
+.filter-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 107, 74, 0.16);
+  border: 1px solid rgba(255, 107, 74, 0.4);
+  border-radius: 9999px;
+  padding: 2px 7px;
+  color: #fca5a5;
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.filter-toggle-pill:hover {
+  background: rgba(255, 107, 74, 0.3);
+  border-color: rgba(255, 107, 74, 0.75);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.filter-toggle-pill.is-all {
+  background: rgba(148, 163, 184, 0.16);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #cbd5e1;
+}
+
+.filter-toggle-pill.is-all:hover {
+  background: rgba(148, 163, 184, 0.28);
+  border-color: rgba(148, 163, 184, 0.65);
+  color: #ffffff;
+}
+
+.filter-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ff6b4a;
+  box-shadow: 0 0 6px #ff6b4a;
+  flex-shrink: 0;
+}
+
+.filter-toggle-pill.is-all .filter-dot {
+  background: #94a3b8;
+  box-shadow: none;
 }
 
 /* Vertical Menu Container: Các item tách rời, căn phải */
@@ -152,6 +236,17 @@ const handleRecipeClick = (id: string) => {
   border-color: rgba(255, 107, 74, 0.55);
 }
 
+/* Incompatible state (when viewing all recipes) */
+.menu-item-pill.is-incompatible {
+  opacity: 0.52;
+  filter: grayscale(35%);
+}
+
+.menu-item-pill.is-incompatible:hover {
+  opacity: 0.85;
+  filter: none;
+}
+
 /* Dải chỉ báo active ở mép phải */
 .pill-active-edge {
   position: absolute;
@@ -209,7 +304,7 @@ const handleRecipeClick = (id: string) => {
   display: inline-block;
 }
 
-/* Mobile Responsive: Tối giản hoàn toàn, không thumbnail, không thời gian nấu */
+/* Mobile Responsive */
 @media (max-width: 768px) {
   .side-menu-rail {
     padding: 2px 0;
@@ -218,6 +313,21 @@ const handleRecipeClick = (id: string) => {
   .menu-header {
     padding-right: 4px;
     margin-bottom: 3px;
+  }
+
+  .menu-header-flex {
+    gap: 4px;
+  }
+
+  .filter-toggle-pill {
+    padding: 1.5px 5px;
+    font-size: 0.5rem;
+    gap: 3px;
+  }
+
+  .filter-dot {
+    width: 4px;
+    height: 4px;
   }
 
   .menu-title {

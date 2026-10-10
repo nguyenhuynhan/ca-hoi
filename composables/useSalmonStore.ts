@@ -25,6 +25,8 @@ export interface SalmonProduct {
   accentColor: string
   tagline: string
   description: string
+  recipeIds: string[]
+  bestRecipeId: string
 }
 
 export interface ProcessingOption {
@@ -62,6 +64,7 @@ export interface SalmonRecipe {
   recommendedProductId: string
   recommendedProductName: string
   recommendedCutReason: string
+  compatibleProductIds: string[]
   tagline: string
   description: string
   ingredients: RecipeIngredient[]
@@ -95,7 +98,17 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Ăn sống Sashimi', 'Áp chảo Steak', 'Phi lê lẩu nướng', 'Đầu & xương nấu lẩu chua'],
     accentColor: '#38bdf8',
     tagline: 'Đại dương phương Bắc — Bay thẳng từ Na Uy trong ngày',
-    description: 'Cá hồi tươi nguyên con nhập khẩu chính ngạch đường hàng không từ các vịnh biển tinh khiết nhất Na Uy. Thân tròn đẫy đà, mắt trong veo, vảy bạc lấp lánh bám chặt, thịt cá đàn hồi mọng nước ngọt thanh tự nhiên.'
+    description: 'Cá hồi tươi nguyên con nhập khẩu chính ngạch đường hàng không từ các vịnh biển tinh khiết nhất Na Uy. Thân tròn đẫy đà, mắt trong veo, vảy bạc lấp lánh bám chặt, thịt cá đàn hồi mọng nước ngọt thanh tự nhiên.',
+    bestRecipeId: 'lau-dau-ca-hoi-mang-chua',
+    recipeIds: [
+      'lau-dau-ca-hoi-mang-chua',
+      'ca-hoi-ap-chao-bo-toi',
+      'ca-hoi-nuong-pho-mai',
+      'ca-hoi-sot-cam',
+      'salad-ca-hoi-qua-bo',
+      'chao-ca-hoi-hat-sen',
+      'mi-y-ca-hoi-sot-kem'
+    ]
   },
   {
     id: 'nauy-nguyen-tang',
@@ -122,7 +135,15 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Sashimi / Sushi chuẩn Nhật', 'Steak bơ tỏi áp chảo', 'Nướng sốt cam / teriyaki'],
     accentColor: '#ff6b4a',
     tagline: 'Vân mỡ cẩm thạch hoàn hảo — Béo ngậy tan ngay đầu lưỡi',
-    description: 'Nguyên tảng phi lê nửa thân cá hồi Na Uy tươi còn da hoặc lọc da theo yêu cầu. Đường vân mỡ trắng ngà xen kẽ thịt cam hồng tự nhiên, thịt đanh chắc không bở, ngọt đậm đà, lý tưởng nhất cho tiệc Sashimi cao cấp.'
+    description: 'Nguyên tảng phi lê nửa thân cá hồi Na Uy tươi còn da hoặc lọc da theo yêu cầu. Đường vân mỡ trắng ngà xen kẽ thịt cam hồng tự nhiên, thịt đanh chắc không bở, ngọt đậm đà, lý tưởng nhất cho tiệc Sashimi cao cấp.',
+    bestRecipeId: 'ca-hoi-ap-chao-bo-toi',
+    recipeIds: [
+      'ca-hoi-ap-chao-bo-toi',
+      'ca-hoi-nuong-pho-mai',
+      'ca-hoi-sot-cam',
+      'salad-ca-hoi-qua-bo',
+      'mi-y-ca-hoi-sot-kem'
+    ]
   },
   {
     id: 'nauy-phi-le',
@@ -149,7 +170,15 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Ăn sống Sashimi hảo hạng', 'Steak cá hồi sốt chanh leo', 'Salad cá hồi quả bơ'],
     accentColor: '#f97316',
     tagline: 'Cắt miếng gọn gàng — Sạch xương 100%, chế biến tiện lợi',
-    description: 'Được phi lê và rút xương thủ công tỉ mỉ từng thớ, cắt khẩu phần vừa vặn theo trọng lượng khách yêu cầu. Thịt cá giữ trọn hương vị tươi mát của biển sâu, giàu Omega-3, DHA tốt cho cả gia đình và bé nhỏ.'
+    description: 'Được phi lê và rút xương thủ công tỉ mỉ từng thớ, cắt khẩu phần vừa vặn theo trọng lượng khách yêu cầu. Thịt cá giữ trọn hương vị tươi mát của biển sâu, giàu Omega-3, DHA tốt cho cả gia đình và bé nhỏ.',
+    bestRecipeId: 'ca-hoi-ap-chao-bo-toi',
+    recipeIds: [
+      'ca-hoi-ap-chao-bo-toi',
+      'ca-hoi-nuong-pho-mai',
+      'ca-hoi-sot-cam',
+      'salad-ca-hoi-qua-bo',
+      'mi-y-ca-hoi-sot-kem'
+    ]
   },
   {
     id: 'nauy-phi-le-200g',
@@ -176,7 +205,15 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Bữa tối nhanh 1-2 người', 'Sashimi tiện lợi', 'Áp chảo 5 phút chuẩn vị'],
     accentColor: '#fb923c',
     tagline: 'Khay tiệt trùng tiện dụng — Giữ trọn độ tươi sống từng bữa ăn',
-    description: 'Khẩu phần 200g chuẩn xác đóng gói màng hút chân không Skin-pack cao cấp. Rất thích hợp cho bữa tối gia đình nhỏ hoặc người bận rộn, chỉ cần mở khay là có thể chế biến ngay không cần sơ chế phức tạp.'
+    description: 'Khẩu phần 200g chuẩn xác đóng gói màng hút chân không Skin-pack cao cấp. Rất thích hợp cho bữa tối gia đình nhỏ hoặc người bận rộn, chỉ cần mở khay là có thể chế biến ngay không cần sơ chế phức tạp.',
+    bestRecipeId: 'ca-hoi-sot-cam',
+    recipeIds: [
+      'ca-hoi-sot-cam',
+      'ca-hoi-ap-chao-bo-toi',
+      'ca-hoi-nuong-pho-mai',
+      'salad-ca-hoi-qua-bo',
+      'mi-y-ca-hoi-sot-kem'
+    ]
   },
   {
     id: 'nauy-cat-thoi-100g',
@@ -203,7 +240,13 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Chấm mù tạt tương Nhật ăn ngay', 'Cuộn Sushi Nigiri', 'Poke bowl dinh dưỡng'],
     accentColor: '#fdba74',
     tagline: 'Cắt thỏi vuông vắn — Chuẩn kích thước Sashimi & Sushi Nhật',
-    description: 'Thịt cá hồi Na Uy tươi được cắt thỏi vuông chuẩn từng milimet chuyên dùng cho Sashimi và Sushi. Thớ thịt chắc, vị béo ngậy ngọt đượm quyện cùng wasabi cay nồng mang lại trải nghiệm ẩm thực thăng hoa.'
+    description: 'Thịt cá hồi Na Uy tươi được cắt thỏi vuông chuẩn từng milimet chuyên dùng cho Sashimi và Sushi. Thớ thịt chắc, vị béo ngậy ngọt đượm quyện cùng wasabi cay nồng mang lại trải nghiệm ẩm thực thăng hoa.',
+    bestRecipeId: 'mi-y-ca-hoi-sot-kem',
+    recipeIds: [
+      'mi-y-ca-hoi-sot-kem',
+      'salad-ca-hoi-qua-bo',
+      'chao-ca-hoi-hat-sen'
+    ]
   },
   {
     id: 'chile-nguyen-con',
@@ -230,7 +273,14 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Làm tiệc, nhà hàng, quán ăn', 'Nướng nguyên con bơ tỏi', 'Lẩu hải sản chua cay'],
     accentColor: '#38bdf8',
     tagline: 'Cấp đông nhanh IQF -18°C — Khóa chặt độ tươi ngon từ khơi xa',
-    description: 'Cá hồi Chile đánh bắt tự nhiên từ vùng biển Nam Cực trong lành, cấp đông sâu IQF ngay trên tàu biển. Thịt cá giữ nguyên hàm lượng dinh dưỡng, giá thành kinh tế tối ưu cho nhà hàng và tiệc tùng đông người.'
+    description: 'Cá hồi Chile đánh bắt tự nhiên từ vùng biển Nam Cực trong lành, cấp đông sâu IQF ngay trên tàu biển. Thịt cá giữ nguyên hàm lượng dinh dưỡng, giá thành kinh tế tối ưu cho nhà hàng và tiệc tùng đông người.',
+    bestRecipeId: 'lau-dau-ca-hoi-mang-chua',
+    recipeIds: [
+      'lau-dau-ca-hoi-mang-chua',
+      'ca-hoi-nuong-pho-mai',
+      'chao-ca-hoi-hat-sen',
+      'ca-hoi-sot-cam'
+    ]
   },
   {
     id: 'chile-coho-200g',
@@ -257,7 +307,15 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Áp chảo sốt tiêu đen', 'Nướng mỡ hành phô mai', 'Nấu cháo bồi bổ sức khỏe'],
     accentColor: '#ef4444',
     tagline: 'Sắc đỏ ruby quý hiếm — Thịt đanh chắc, hương thơm biển đậm đà',
-    description: 'Dòng cá hồi Coho đặc hữu Chile với màu thịt đỏ thẫm tự nhiên độc đáo. Thớ thịt chắc nịch ít mỡ thừa, rất thích hợp cho người ăn kiêng, tập gym, gymer và các món áp chảo, nướng đậm vị.'
+    description: 'Dòng cá hồi Coho đặc hữu Chile với màu thịt đỏ thẫm tự nhiên độc đáo. Thớ thịt chắc nịch ít mỡ thừa, rất thích hợp cho người ăn kiêng, tập gym, gymer và các món áp chảo, nướng đậm vị.',
+    bestRecipeId: 'ca-hoi-nuong-pho-mai',
+    recipeIds: [
+      'ca-hoi-nuong-pho-mai',
+      'ca-hoi-ap-chao-bo-toi',
+      'ca-hoi-sot-cam',
+      'chao-ca-hoi-hat-sen',
+      'mi-y-ca-hoi-sot-kem'
+    ]
   },
   {
     id: 'chile-coho-thoi-100g',
@@ -284,7 +342,13 @@ export const SALMON_CATALOG: SalmonProduct[] = [
     culinaryUses: ['Mì Ý cá hồi sốt kem', 'Nấu cháo súp dinh dưỡng bé', 'Chiên giòn tẩm bột tempura'],
     accentColor: '#f43f5e',
     tagline: 'Tiết kiệm & dinh dưỡng — Sẵn sàng nấu ngay không hao hụt',
-    description: 'Từng thỏi cá hồi Coho đỏ au cắt miếng chuẩn 100g, thích hợp tuyệt đối cho các món nấu sốt, làm mì Ý sốt kem nấm hoặc nấu cháo dinh dưỡng cho các bé yêu với chi phí siêu tiết kiệm chỉ 41k/khay.'
+    description: 'Từng thỏi cá hồi Coho đỏ au cắt miếng chuẩn 100g, thích hợp tuyệt đối cho các món nấu sốt, làm mì Ý sốt kem nấm hoặc nấu cháo dinh dưỡng cho các bé yêu với chi phí siêu tiết kiệm chỉ 41k/khay.',
+    bestRecipeId: 'chao-ca-hoi-hat-sen',
+    recipeIds: [
+      'chao-ca-hoi-hat-sen',
+      'mi-y-ca-hoi-sot-kem',
+      'salad-ca-hoi-qua-bo'
+    ]
   }
 ]
 
@@ -327,6 +391,13 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
     recommendedProductId: 'nauy-phi-le',
     recommendedProductName: 'Cá Hồi Nauy Tươi Phi Lê Miếng',
     recommendedCutReason: 'Miếng phi lê dày dặn, áp chảo da giòn rụm, thịt mọng nước',
+    compatibleProductIds: [
+      'nauy-phi-le',
+      'nauy-nguyen-tang',
+      'nauy-phi-le-200g',
+      'nauy-nguyen-con',
+      'chile-coho-200g'
+    ],
     tagline: 'Da giòn rụm rực rỡ, thịt mềm mọng thơm lừng bơ tỏi thảo mộc',
     description: 'Món Steak cá hồi kinh điển của ẩm thực phương Tây. Mặt da được chiên giòn tan tanh tách, thịt bên trong hồng đào mềm mướt ngậm nước, quyện đẫm sốt bơ tỏi béo thơm và hương thơm quý phái từ chanh vàng & lá hương thảo.',
     ingredients: [
@@ -380,6 +451,14 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
     recommendedProductId: 'nauy-phi-le-200g',
     recommendedProductName: 'Cá Hồi Nauy Phi Lê Khay 200g',
     recommendedCutReason: 'Khẩu phần 200g vừa vặn cho 1 đĩa sốt cam thơm ngon nhanh gọn',
+    compatibleProductIds: [
+      'nauy-phi-le-200g',
+      'nauy-phi-le',
+      'nauy-nguyen-tang',
+      'nauy-nguyen-con',
+      'chile-coho-200g',
+      'chile-nguyen-con'
+    ],
     tagline: 'Sốt cam óng ả sánh mịn, vị chua ngọt tự nhiên đưa cơm',
     description: 'Sự hòa quyện tuyệt vời giữa vị ngọt thanh béo ngậy của cá hồi đại dương và nước cốt cam tươi chua ngọt mượt mà. Món ăn giàu vitamin C, màu sắc rực rỡ bắt mắt, ăn cùng cơm nóng hay măng tây đều ngon hết nấc.',
     ingredients: [
@@ -432,6 +511,15 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
     recommendedProductId: 'nauy-cat-thoi-100g',
     recommendedProductName: 'Nauy Phi Lê Cắt Thỏi 100g',
     recommendedCutReason: 'Thỏi cá vuông vắn sẵn, xào không bị nát, quyện sốt cực ngon',
+    compatibleProductIds: [
+      'nauy-cat-thoi-100g',
+      'chile-coho-thoi-100g',
+      'nauy-phi-le-200g',
+      'chile-coho-200g',
+      'nauy-phi-le',
+      'nauy-nguyen-tang',
+      'nauy-nguyen-con'
+    ],
     tagline: 'Sợi mì dai giòn tắm đẫm sốt kem ngậy béo, từng thỏi cá thơm lừng',
     description: 'Từng sợi mì Ý dai ngon bọc lấy lớp sốt kem phô mai béo ngậy óng ánh, điểm xuyết từng thỏi cá hồi màu hồng cam rạng rỡ được xào bơ tỏi thơm nức mũi. Món ăn yêu thích số 1 của các bé và cả gia đình.',
     ingredients: [
@@ -484,6 +572,10 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
     recommendedProductId: 'nauy-nguyen-con',
     recommendedProductName: 'Cá Hồi Nauy Tươi Nguyên Con',
     recommendedCutReason: 'Trọn bộ đầu & xương cá béo ngậy nấu nước dùng ngọt đậm đà',
+    compatibleProductIds: [
+      'nauy-nguyen-con',
+      'chile-nguyen-con'
+    ],
     tagline: 'Vị chua cay đậm đà, nước dùng ngọt sâu từ xương cá tươi rói',
     description: 'Nồi lẩu sôi sùng sục thơm lừng mùi thì là và măng chua. Vị chua thanh thanh từ măng và cà chua hòa quyện với vị béo ngọt tự nhiên từ đầu và xương cá hồi tươi nguyên bản, làm ấm lòng cả nhà trong những bữa cơm quây quần.',
     ingredients: [
@@ -536,6 +628,14 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
     recommendedProductId: 'nauy-phi-le-200g',
     recommendedProductName: 'Cá Hồi Nauy Phi Lê Khay 200g',
     recommendedCutReason: 'Khay 200g sạch da sạch xương, làm salad cực kỳ nhanh gọn',
+    compatibleProductIds: [
+      'nauy-phi-le-200g',
+      'nauy-cat-thoi-100g',
+      'nauy-phi-le',
+      'nauy-nguyen-tang',
+      'nauy-nguyen-con',
+      'chile-coho-thoi-100g'
+    ],
     tagline: 'Giàu Omega-3 & Chất xơ tinh khiết, thanh mát giữ dáng đẹp da',
     description: 'Bữa ăn Eat Clean trọn vẹn dưỡng chất cho người tập gym, ăn kiêng và yêu lối sống lành mạnh. Miếng cá hồi tươi béo bùi kết hợp cùng bơ sáp dẻo quánh, rau xà lách giòn rụm và sốt mè rang béo ngậy thơm lừng.',
     ingredients: [
@@ -582,6 +682,14 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
     recommendedProductId: 'chile-coho-thoi-100g',
     recommendedProductName: 'Chile Coho Cắt Thỏi Rã Đông 100g',
     recommendedCutReason: 'Thịt đỏ ruby đanh chắc, chỉ 41k/khay, nấu cháo màu sắc rực rỡ',
+    compatibleProductIds: [
+      'chile-coho-thoi-100g',
+      'nauy-cat-thoi-100g',
+      'chile-coho-200g',
+      'nauy-phi-le-200g',
+      'chile-nguyen-con',
+      'nauy-nguyen-con'
+    ],
     tagline: 'Sánh mịn thơm ngon, bổ sung DHA và Omega-3 vượt trội',
     description: 'Cháo hạt sen bí đỏ sánh mịn vàng ươm, quyện cùng thịt cá hồi đỏ au ngọt lịm được phi thơm cùng hành tỏi và dầu gấc dinh dưỡng. Món ăn số 1 để bồi bổ sức khỏe cho bé yêu và người lớn tuổi.',
     ingredients: [
@@ -634,6 +742,14 @@ export const SALMON_RECIPES: SalmonRecipe[] = [
     recommendedProductId: 'nauy-phi-le',
     recommendedProductName: 'Cá Hồi Nauy Tươi Phi Lê Miếng',
     recommendedCutReason: 'Miếng phi lê dày dặn chịu nhiệt tốt, phô mai phủ đều mọng nước',
+    compatibleProductIds: [
+      'nauy-phi-le',
+      'nauy-nguyen-tang',
+      'nauy-phi-le-200g',
+      'nauy-nguyen-con',
+      'chile-coho-200g',
+      'chile-nguyen-con'
+    ],
     tagline: 'Lớp phô mai vàng ruộm xém cạnh chảy tràn, thơm nức mũi',
     description: 'Chỉ cần một chiếc nồi chiên không dầu hoặc lò nướng nhỏ, bạn đã có ngay món cá hồi đẫm phô mai Mozzarella kéo sợi dẻo dai. Thịt cá bên trong ngọt mềm, bên trên béo ngậy giòn tan.',
     ingredients: [
@@ -681,6 +797,7 @@ export const useSalmonStore = () => {
   const isOrderModalOpen = useState<boolean>('isOrderModalOpen', () => false)
 
   // Recipe Feature States
+  const recipeFilterMode = useState<'matched' | 'all'>('salmonRecipeFilterMode', () => 'matched')
   const selectedRecipeId = useState<string>('selectedSalmonRecipeId', () => 'ca-hoi-ap-chao-bo-toi')
   const isRecipeModalOpen = useState<boolean>('isRecipeModalOpen', () => false)
   const isMobileRecipeDrawerOpen = useState<boolean>('isMobileRecipeDrawerOpen', () => false)
@@ -689,25 +806,52 @@ export const useSalmonStore = () => {
     return SALMON_CATALOG[currentProductIndex.value] || SALMON_CATALOG[0]
   })
 
+  // Filtered recipes suitable for currently selected product
+  const currentProductRecipes = computed(() => {
+    const p = currentProduct.value
+    if (!p || !p.recipeIds) return SALMON_RECIPES
+    return SALMON_RECIPES.filter(r => p.recipeIds.includes(r.id))
+  })
+
+  // Displayed recipes depending on filter mode
+  const displayedRecipes = computed(() => {
+    if (recipeFilterMode.value === 'all') {
+      return SALMON_RECIPES
+    }
+    return currentProductRecipes.value
+  })
+
+  // Ensure active recipe is valid for current product
+  const ensureValidRecipeForCurrentProduct = () => {
+    const p = currentProduct.value
+    if (p && p.recipeIds && !p.recipeIds.includes(selectedRecipeId.value)) {
+      selectedRecipeId.value = p.bestRecipeId || p.recipeIds[0] || SALMON_RECIPES[0].id
+    }
+  }
+
   const setProductById = (id: string) => {
     const idx = SALMON_CATALOG.findIndex(p => p.id === id)
     if (idx !== -1) {
       currentProductIndex.value = idx
+      ensureValidRecipeForCurrentProduct()
     }
   }
 
   const setProductIndex = (idx: number) => {
     if (idx >= 0 && idx < SALMON_CATALOG.length) {
       currentProductIndex.value = idx
+      ensureValidRecipeForCurrentProduct()
     }
   }
 
   const nextProduct = () => {
     currentProductIndex.value = (currentProductIndex.value + 1) % SALMON_CATALOG.length
+    ensureValidRecipeForCurrentProduct()
   }
 
   const prevProduct = () => {
     currentProductIndex.value = (currentProductIndex.value - 1 + SALMON_CATALOG.length) % SALMON_CATALOG.length
+    ensureValidRecipeForCurrentProduct()
   }
 
   const currentProcessing = computed(() => {
@@ -799,6 +943,9 @@ export const useSalmonStore = () => {
     catalog: SALMON_CATALOG,
     processingOptions: PROCESSING_OPTIONS,
     recipes: SALMON_RECIPES,
+    currentProductRecipes,
+    displayedRecipes,
+    recipeFilterMode,
     currentProductIndex,
     currentProduct,
     isWholeFish,

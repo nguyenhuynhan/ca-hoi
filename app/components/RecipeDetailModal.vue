@@ -4,6 +4,8 @@ const {
   isRecipeModalOpen, 
   closeRecipe, 
   orderRecipeSalmon,
+  setProductById,
+  isOrderModalOpen,
   formatCurrency,
   catalog 
 } = useSalmonStore()
@@ -22,6 +24,21 @@ const toggleIngredient = (name: string) => {
 const recommendedProduct = computed(() => {
   return catalog.find(p => p.id === selectedRecipe.value.recommendedProductId) || catalog[0]
 })
+
+// Find other compatible products
+const otherCompatibleProducts = computed(() => {
+  if (!selectedRecipe.value.compatibleProductIds) return []
+  return catalog.filter(p => 
+    selectedRecipe.value.compatibleProductIds.includes(p.id) && 
+    p.id !== recommendedProduct.value.id
+  )
+})
+
+const orderSpecificProduct = (productId: string) => {
+  setProductById(productId)
+  closeRecipe()
+  isOrderModalOpen.value = true
+}
 
 // Close with Escape key
 const handleKeyDown = (e: KeyboardEvent) => {
@@ -152,6 +169,25 @@ onUnmounted(() => {
                 <p class="cut-reason">
                   👉 {{ selectedRecipe.recommendedCutReason }}
                 </p>
+
+                <!-- Các loại cá hồi khác cũng phù hợp -->
+                <div v-if="otherCompatibleProducts.length > 0" class="other-compatible-cuts">
+                  <span class="other-cuts-title">Dòng cá khác cũng hợp nấu món này:</span>
+                  <div class="other-cuts-list">
+                    <button 
+                      v-for="p in otherCompatibleProducts" 
+                      :key="p.id"
+                      type="button"
+                      class="other-cut-tag"
+                      @click="orderSpecificProduct(p.id)"
+                      :title="`Bấm để chọn đặt ${p.name}`"
+                    >
+                      <span class="cut-tag-flag">{{ p.flag }}</span>
+                      <span class="cut-tag-name">{{ p.shortName }}</span>
+                      <span class="cut-tag-price">{{ p.priceDisplay.split('/')[0] }}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <!-- Ingredients List Checklist -->
@@ -565,6 +601,54 @@ onUnmounted(() => {
   font-size: 0.7rem;
   color: #cbd5e1;
   line-height: 1.35;
+}
+
+.other-compatible-cuts {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.other-cuts-title {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 5px;
+}
+
+.other-cuts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.other-cut-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 3px 7px;
+  color: #e2e8f0;
+  font-size: 0.62rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.other-cut-tag:hover {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.cut-tag-price {
+  color: var(--accent-salmon);
+  font-weight: 700;
+  font-size: 0.58rem;
 }
 
 /* INGREDIENTS LIST */
