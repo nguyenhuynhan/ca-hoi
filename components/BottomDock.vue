@@ -126,7 +126,7 @@ const quantityPresets = computed(() => {
             @click="triggerOrder"
           >
             <span class="btn-cta-text">
-              {{ isWholeFish ? '⚡ CHỐT ĐƠN (CÂN BÁO GIÁ)' : '⚡ CHỐT ĐƠN' }}
+              {{ isWholeFish ? '⚡ CÂN BÁO GIÁ' : '⚡ CHỐT ĐƠN' }}
             </span>
             <span class="btn-cta-sub hide-mobile">
               {{ isWholeFish ? 'Kho cân thực tế và báo giá chuẩn trước khi giao' : 'Giao lạnh nguyên vẹn trong 2 giờ' }}
