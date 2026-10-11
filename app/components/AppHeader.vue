@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { currentProduct, isPriceTableOpen, openPromoModal, appliedPromoCode } = useSalmonStore()
+const { currentProduct, isPriceTableOpen } = useSalmonStore()
 const showHotlineAlert = ref(false)
 
 const copyHotline = () => {
@@ -53,18 +53,6 @@ const togglePriceTable = () => {
 
       <!-- Action Group -->
       <div class="header-actions">
-        <!-- Mã Ưu Đãi Button -->
-        <button 
-          class="action-btn glass-pill promo-btn" 
-          @click="openPromoModal"
-          title="Xem các mã khuyến mãi & giảm giá demo"
-        >
-          <span class="btn-icon">🎟️</span>
-          <span class="btn-text-wrap"><span class="hide-micro">Mã </span>Ưu Đãi</span>
-          <span v-if="appliedPromoCode" class="active-dot-badge">✓</span>
-          <span v-else class="promo-count-badge hide-mobile">4 mã</span>
-        </button>
-
         <!-- Bảng Giá Button -->
         <button 
           class="action-btn glass-pill price-table-btn" 
@@ -72,7 +60,7 @@ const togglePriceTable = () => {
           title="Xem bảng chào giá chi tiết 8 sản phẩm"
         >
           <span class="btn-icon">📋</span>
-          <span class="btn-text-wrap">Bảng <span class="hide-micro">Chào </span>Giá</span>
+          <span class="btn-text-wrap">Bảng Chào Giá</span>
           <span class="hot-badge hide-mobile">Đủ 8 mã</span>
         </button>
 
