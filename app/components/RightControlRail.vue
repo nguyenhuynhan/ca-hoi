@@ -108,7 +108,7 @@ const toggleFilterMode = () => {
 
 .menu-title {
   font-family: var(--font-display);
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: rgba(254, 205, 211, 0.9);
   letter-spacing: 0.08em;
@@ -124,10 +124,10 @@ const toggleFilterMode = () => {
   background: rgba(255, 107, 74, 0.16);
   border: 1px solid rgba(255, 107, 74, 0.4);
   border-radius: 9999px;
-  padding: 2px 7px;
+  padding: 2.5px 7px;
   color: #fca5a5;
   font-family: var(--font-display);
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -173,7 +173,7 @@ const toggleFilterMode = () => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 5px;
+  gap: 5.5px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -182,7 +182,7 @@ const toggleFilterMode = () => {
 
 /* Menu Item Pill:
    - Chiều cao đúng 1 dòng (line-height 1, padding vừa vặn)
-   - Tách rời nhau (gap 5px / mobile 4px)
+   - Tách rời nhau (gap 5.5px / mobile 4px)
    - Không cố định chiều dài, co giãn theo chữ (width: fit-content)
    - Vuông bên phải (bám mép màn hình), bo tròn bên trái (border-radius: 9999px 0 0 9999px)
    - Nền đầm bớt trong suốt (0.88) để chữ rõ ràng sắc nét, không bị lẫn với hình ảnh bên dưới
@@ -195,7 +195,7 @@ const toggleFilterMode = () => {
   gap: 6px;
   width: fit-content;
   max-width: fit-content;
-  padding: 5px 8px 5px 12px;
+  padding: 7px 8px 7px 11px;
   background: rgba(6, 20, 40, 0.88);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -261,7 +261,7 @@ const toggleFilterMode = () => {
 /* Tên món: 1 dòng duy nhất */
 .pill-name {
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.77rem;
   font-weight: 700;
   color: #f1f5f9;
   letter-spacing: -0.01em;
@@ -282,12 +282,12 @@ const toggleFilterMode = () => {
 
 /* Badge Thời gian nấu (chỉ hiện desktop) */
 .pill-cook-tag {
-  font-size: 0.56rem;
+  font-size: 0.60rem;
   font-weight: 700;
   color: #fef08a;
   background: rgba(234, 179, 8, 0.18);
   border: 1px solid rgba(234, 179, 8, 0.35);
-  padding: 1px 5px;
+  padding: 1.5px 5px;
   border-radius: 9999px;
   line-height: 1;
   white-space: nowrap;
@@ -320,8 +320,8 @@ const toggleFilterMode = () => {
   }
 
   .filter-toggle-pill {
-    padding: 1.5px 5px;
-    font-size: 0.5rem;
+    padding: 2px 5px;
+    font-size: 0.54rem;
     gap: 3px;
   }
 
@@ -331,7 +331,7 @@ const toggleFilterMode = () => {
   }
 
   .menu-title {
-    font-size: 0.56rem;
+    font-size: 0.62rem;
   }
 
   .vertical-menu-container {
@@ -339,14 +339,14 @@ const toggleFilterMode = () => {
   }
 
   .menu-item-pill {
-    padding: 3.5px 6px 3.5px 7px;
+    padding: 5.5px 5.5px 5.5px 6.5px;
     gap: 4px;
     border-top-left-radius: 9999px;
     border-bottom-left-radius: 9999px;
   }
 
   .pill-name {
-    font-size: 0.55rem;
+    font-size: 0.62rem;
   }
 
   .pill-active-edge {

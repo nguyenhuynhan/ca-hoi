@@ -956,7 +956,7 @@ const quantityPresets = computed(() => {
 
   .showcase-upper-zone {
     flex: 0 0 auto;
-    height: clamp(230px, 32vh, 270px);
+    height: clamp(240px, 34vh, 285px);
     width: 100%;
     padding-top: 2px;
     align-items: flex-start;

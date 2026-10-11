@@ -66,7 +66,7 @@ const handleItemClick = (idx: number) => {
 
 .menu-title {
   font-family: var(--font-display);
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: rgba(226, 232, 240, 0.85);
   letter-spacing: 0.08em;
@@ -79,7 +79,7 @@ const handleItemClick = (idx: number) => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 5px;
+  gap: 5.5px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -88,7 +88,7 @@ const handleItemClick = (idx: number) => {
 
 /* Menu Item Pill:
    - Chiều cao đúng 1 dòng (height auto, line-height 1, padding vừa vặn)
-   - Tách rời nhau (gap 5px)
+   - Tách rời nhau (gap 5.5px)
    - Không cố định chiều dài, co giãn theo chữ (width: fit-content)
    - Vuông bên trái, bo tròn bên phải (border-radius: 0 9999px 9999px 0)
    - Hiệu ứng trong suốt iOS liquid glassmorphism thấy rõ hình nền phía sau
@@ -100,7 +100,7 @@ const handleItemClick = (idx: number) => {
   gap: 6px;
   width: fit-content;
   max-width: fit-content;
-  padding: 5px 12px 5px 8px;
+  padding: 7px 11px 7px 8px;
   background: rgba(6, 20, 40, 0.88);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -151,7 +151,7 @@ const handleItemClick = (idx: number) => {
 /* Tên cá: 1 dòng duy nhất */
 .pill-name {
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.77rem;
   font-weight: 700;
   color: #f1f5f9;
   letter-spacing: -0.01em;
@@ -214,7 +214,7 @@ const handleItemClick = (idx: number) => {
 
 .pill-price-tag {
   font-family: var(--font-display);
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: var(--accent-salmon);
   line-height: 1;
@@ -235,7 +235,7 @@ const handleItemClick = (idx: number) => {
   }
 
   .menu-title {
-    font-size: 0.56rem;
+    font-size: 0.62rem;
   }
 
   .vertical-menu-container {
@@ -243,14 +243,14 @@ const handleItemClick = (idx: number) => {
   }
 
   .menu-item-pill {
-    padding: 3.5px 7px 3.5px 6px;
+    padding: 5.5px 6.5px 5.5px 5.5px;
     gap: 4px;
     border-top-right-radius: 9999px;
     border-bottom-right-radius: 9999px;
   }
 
   .pill-name {
-    font-size: 0.55rem;
+    font-size: 0.62rem;
   }
 
   .pill-whole-indicator {
