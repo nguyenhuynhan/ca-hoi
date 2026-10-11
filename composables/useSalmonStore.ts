@@ -1053,16 +1053,17 @@ export const useSalmonStore = () => {
       return false
     }
 
+    appliedPromoCode.value = found.code
+    promoInputText.value = found.code
+
     if (subtotal.value < found.minOrderValue) {
       promoFeedback.value = {
         type: 'error',
-        message: `Mã ${found.code} yêu cầu đơn từ ${formatCurrency(found.minOrderValue)} (Đơn hiện tại: ${formatCurrency(subtotal.value)})`
+        message: `Mã ${found.code} yêu cầu đơn từ ${formatCurrency(found.minOrderValue)} (Đơn hiện tại: ${formatCurrency(subtotal.value)}). Tăng số lượng để kích hoạt giảm giá.`
       }
       return false
     }
 
-    appliedPromoCode.value = found.code
-    promoInputText.value = found.code
     promoFeedback.value = {
       type: 'success',
       message: `Đã áp dụng mã ${found.code}: ${found.title}`

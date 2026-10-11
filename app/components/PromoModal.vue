@@ -25,13 +25,15 @@ const copyPromoCode = (code: string) => {
   }, 2000)
 }
 
-const handleUseCode = (code: string) => {
-  const ok = selectAndApplyPromo(code)
-  if (!ok) {
-    // If not meeting min value yet, still allow user to proceed to order modal to view requirement
-    isPromoModalOpen.value = false
-    isOrderModalOpen.value = true
-  }
+const handleApplyCode = (code: string) => {
+  applyPromoCode(code)
+  closePromoModal()
+}
+
+const handleOrderWithCode = (code: string) => {
+  applyPromoCode(code)
+  closePromoModal()
+  isOrderModalOpen.value = true
 }
 </script>
 
@@ -113,20 +115,23 @@ const handleUseCode = (code: string) => {
             <div class="card-footer">
               <template v-if="appliedPromoCode === promo.code">
                 <div class="applied-state-wrap">
-                  <span class="applied-pill">✓ Đang Sử Dụng</span>
+                  <span class="applied-pill">✓ Đang Chọn Mã Này</span>
                   <button class="btn-cancel-apply" @click="removePromoCode">Gỡ bỏ</button>
                 </div>
+                <button class="btn-order-now-action" @click="handleOrderWithCode(promo.code)">
+                  ⚡ Chốt Đơn Ngay
+                </button>
               </template>
               <template v-else>
                 <button 
                   class="btn-apply-action"
-                  @click="handleUseCode(promo.code)"
+                  @click="handleApplyCode(promo.code)"
                 >
                   <span v-if="promo.minOrderValue > 0 && subtotal < promo.minOrderValue" class="cond-hint">
-                    ⚡ Áp dụng (Đơn cần ≥ {{ formatCurrency(promo.minOrderValue) }})
+                    ⚡ Chọn Mã (Cần đơn ≥ {{ formatCurrency(promo.minOrderValue) }})
                   </span>
                   <span v-else>
-                    ⚡ Áp Dụng & Chốt Đơn
+                    ⚡ Chọn & Áp Dụng Mã
                   </span>
                 </button>
               </template>
@@ -170,7 +175,8 @@ const handleUseCode = (code: string) => {
   position: relative;
   width: 100%;
   max-width: 820px;
-  max-height: 94vh;
+  max-height: 90vh;
+  max-height: 90dvh;
   background: rgba(4, 16, 33, 0.96);
   border: 1px solid rgba(56, 189, 248, 0.35);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(56, 189, 248, 0.2);
@@ -208,6 +214,7 @@ const handleUseCode = (code: string) => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding-right: 40px;
 }
 
 .header-badge {
@@ -431,6 +438,31 @@ const handleUseCode = (code: string) => {
   color: #ffffff;
 }
 
+.btn-order-now-action {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #ff6b4a 0%, #dc2626 100%);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-order-now-action:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.4);
+}
+
 .btn-apply-action {
   width: 100%;
   padding: 8px 12px;
@@ -504,23 +536,71 @@ const handleUseCode = (code: string) => {
 }
 
 @media (max-width: 680px) {
-  .promo-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  .modal-backdrop {
+    padding: 8px;
   }
   .modal-card {
-    padding: 16px;
+    padding: 16px 12px 14px;
+    border-radius: 14px;
+    max-height: 92vh;
+    max-height: 92dvh;
   }
   .promo-main-title {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
+    line-height: 1.25;
+  }
+  .header-sub {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+  .promo-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .promo-card {
+    padding: 12px 10px;
+  }
+  .promo-title {
+    font-size: 1rem;
+  }
+  .promo-desc {
+    font-size: 0.74rem;
+    margin-bottom: 8px;
+  }
+  .code-box-row {
+    margin-bottom: 8px;
+  }
+  .code-text {
+    font-size: 0.88rem;
+  }
+  .conditions-box {
+    padding: 6px 8px;
+    font-size: 0.68rem;
+    gap: 3px;
+    margin-bottom: 10px;
+  }
+  .btn-apply-action {
+    padding: 7px 10px;
+    font-size: 0.74rem;
+  }
+  .cond-hint {
+    font-size: 0.68rem;
   }
   .modal-footer {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
+    padding-top: 10px;
+  }
+  .footer-note {
+    font-size: 0.7rem;
   }
   .btn-close-modal {
     width: 100%;
     text-align: center;
+    padding: 7px 14px;
+    font-size: 0.75rem;
   }
 }
 </style>

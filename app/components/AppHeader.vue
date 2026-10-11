@@ -60,7 +60,7 @@ const togglePriceTable = () => {
           title="Xem các mã khuyến mãi & giảm giá demo"
         >
           <span class="btn-icon">🎟️</span>
-          <span>Mã Ưu Đãi</span>
+          <span class="btn-text-wrap"><span class="hide-micro">Mã </span>Ưu Đãi</span>
           <span v-if="appliedPromoCode" class="active-dot-badge">✓</span>
           <span v-else class="promo-count-badge hide-mobile">4 mã</span>
         </button>
@@ -72,7 +72,7 @@ const togglePriceTable = () => {
           title="Xem bảng chào giá chi tiết 8 sản phẩm"
         >
           <span class="btn-icon">📋</span>
-          <span>Bảng Chào Giá</span>
+          <span class="btn-text-wrap">Bảng <span class="hide-micro">Chào </span>Giá</span>
           <span class="hot-badge hide-mobile">Đủ 8 mã</span>
         </button>
 
@@ -213,6 +213,8 @@ const togglePriceTable = () => {
   text-decoration: none;
   cursor: pointer;
   transition: var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
@@ -319,17 +321,57 @@ const togglePriceTable = () => {
 
 @media (max-width: 640px) {
   .site-header {
-    padding: 6px 10px 2px;
+    padding: 6px 8px 2px;
   }
   .brand-name {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
   }
   .hide-mobile {
     display: none !important;
   }
+  .header-actions {
+    gap: 6px;
+  }
   .action-btn {
-    padding: 5px 9px;
-    font-size: 0.74rem;
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header {
+    padding: 5px 6px 2px;
+  }
+  .brand {
+    gap: 5px;
+  }
+  .salmon-logo-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .brand-name {
+    font-size: 0.94rem;
+  }
+  .hide-micro {
+    display: none !important;
+  }
+  .header-actions {
+    gap: 4px;
+  }
+  .action-btn {
+    padding: 4px 6px;
+    font-size: 0.68rem;
+    gap: 3px;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand-name {
+    font-size: 0.86rem;
+  }
+  .action-btn {
+    padding: 3px 5px;
+    font-size: 0.65rem;
   }
 }
 </style>

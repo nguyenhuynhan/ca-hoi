@@ -39,15 +39,11 @@ const quantityPresets = computed(() => {
 <template>
   <footer class="bottom-dock-wrapper">
     <div class="dock-container glass-panel">
-      <!-- DÀNH CHO MOBILE: HÀNG TRÊN (Tên sản phẩm đầy đủ + Tag + Bộ chọn số lượng) -->
+      <!-- DÀNH CHO MOBILE: HÀNG 1 - Tên sản phẩm & Bộ chọn số lượng cân đối 2 bên -->
       <div class="mobile-dock-header hide-desktop">
-        <div class="mobile-item-info">
+        <div class="mobile-item-title-box">
           <span class="mobile-qty-pill">{{ quantity }}x</span>
           <span class="mobile-prod-name">{{ currentProduct.shortName }}</span>
-          <span v-if="promoDiscount > 0" class="mobile-tag tag-promo">🎟️ -{{ formatCurrency(promoDiscount) }}</span>
-          <span v-if="isWholeFish" class="mobile-tag tag-weigh">⚖️ Cân thực tế</span>
-          <span v-else-if="isFreeship" class="mobile-tag tag-free">🚀 Freeship 2H</span>
-          <span v-else class="mobile-tag tag-ship">Phí ship 30k</span>
         </div>
 
         <div class="dock-stepper-wrap mobile-stepper">
@@ -55,6 +51,50 @@ const quantityPresets = computed(() => {
           <span class="qty-val">{{ quantity }}</span>
           <button class="step-btn" @click="incQuantity" aria-label="Tăng">+</button>
         </div>
+      </div>
+
+      <!-- DÀNH CHO MOBILE: HÀNG 2 - Vận chuyển & Nút Chọn Mã Ưu Đãi trực tiếp trên Dock -->
+      <div class="mobile-dock-meta hide-desktop">
+        <div class="mobile-meta-left">
+          <span v-if="isWholeFish" class="mobile-tag tag-weigh">⚖️ Cân thực tế</span>
+          <span v-else-if="isFreeship" class="mobile-tag tag-free">🚀 Freeship 2H</span>
+          <span v-else class="mobile-tag tag-ship">Phí ship 30k</span>
+        </div>
+
+        <!-- Chọn / Đổi mã ưu đãi -->
+        <button 
+          v-if="appliedPromoCode && promoDiscount > 0"
+          type="button"
+          class="mobile-promo-pill promo-active"
+          @click="openPromoModal"
+          title="Bấm để xem hoặc đổi mã ưu đãi"
+        >
+          <span class="m-promo-icon">🎟️</span>
+          <span class="m-promo-text">{{ appliedPromoCode }}: -{{ formatCurrency(promoDiscount) }}</span>
+          <span class="m-promo-edit">✎</span>
+        </button>
+        <button 
+          v-else-if="appliedPromoCode"
+          type="button"
+          class="mobile-promo-pill promo-pending"
+          @click="openPromoModal"
+          title="Bấm để xem điều kiện mã ưu đãi"
+        >
+          <span class="m-promo-icon">🎟️</span>
+          <span class="m-promo-text">{{ appliedPromoCode }} (Chưa đủ ĐK)</span>
+          <span class="m-promo-edit">✎</span>
+        </button>
+        <button 
+          v-else
+          type="button"
+          class="mobile-promo-pill promo-idle"
+          @click="openPromoModal"
+          title="Bấm để chọn mã giảm giá"
+        >
+          <span class="m-promo-icon">🎟️</span>
+          <span>Chọn mã ưu đãi</span>
+          <span class="m-promo-arrow">▾</span>
+        </button>
       </div>
 
       <!-- HÀNG CHÍNH (Desktop: 1 hàng đầy đủ | Mobile: Hàng dưới gồm Giá + Nút Chốt đơn) -->
@@ -91,7 +131,7 @@ const quantityPresets = computed(() => {
               {{ isWholeFish ? '⚖️ CÂN BÁO GIÁ:' : 'TỔNG TẠM TÍNH:' }}
             </span>
             <div class="price-figures">
-              <span class="dock-original-val hide-mobile" v-if="promoDiscount > 0 && !isWholeFish">
+              <span class="dock-original-val" v-if="promoDiscount > 0 && !isWholeFish">
                 {{ formatCurrency(subtotal + (isFreeship ? 0 : 30000)) }}
               </span>
               <span class="dock-total-val" :style="{ color: currentProduct.accentColor }">
@@ -523,31 +563,29 @@ const quantityPresets = computed(() => {
 
   .dock-container {
     flex-direction: column;
-    padding: 10px 14px 12px;
-    gap: 9px;
+    padding: 9px 12px 10px;
+    gap: 7px;
     border-radius: 16px;
     background: rgba(4, 16, 33, 0.94);
     border: 1px solid rgba(56, 189, 248, 0.25);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
   }
 
-  /* Hàng 1 (Mobile Top): Tên sản phẩm + Tag + Stepper */
-  .dock-mobile-header {
+  /* Hàng 1 (Mobile Top): Tên sản phẩm + Stepper */
+  .mobile-dock-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
     gap: 8px;
-    padding-bottom: 7px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   }
 
-  .mobile-item-info {
+  .mobile-item-title-box {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: wrap;
     min-width: 0;
+    flex: 1;
   }
 
   .mobile-qty-pill {
@@ -560,21 +598,57 @@ const quantityPresets = computed(() => {
     padding: 1px 6px;
     border-radius: 4px;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   .mobile-prod-name {
     font-family: var(--font-display);
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.2;
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-stepper {
+    flex-shrink: 0;
+  }
+
+  .mobile-stepper .step-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.95rem;
+  }
+
+  .mobile-stepper .qty-val {
+    min-width: 22px;
+    font-size: 0.88rem;
+  }
+
+  /* Hàng 2 (Mobile Meta): Vận chuyển & Nút chọn mã ưu đãi */
+  .mobile-dock-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .mobile-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
   }
 
   .mobile-tag {
     font-size: 0.58rem;
     font-weight: 700;
-    padding: 1.5px 6px;
+    padding: 2px 6px;
     border-radius: 4px;
     line-height: 1;
     white-space: nowrap;
@@ -596,6 +670,61 @@ const quantityPresets = computed(() => {
     color: #fdba74;
     background: rgba(249, 115, 22, 0.15);
     border: 1px solid rgba(249, 115, 22, 0.35);
+  }
+
+  .mobile-promo-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2.5px 8px;
+    border-radius: 6px;
+    font-size: 0.64rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    max-width: 65%;
+    overflow: hidden;
+  }
+
+  .mobile-promo-pill.promo-idle {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #7dd3fc;
+  }
+
+  .mobile-promo-pill.promo-idle:hover {
+    background: rgba(56, 189, 248, 0.25);
+    color: #ffffff;
+  }
+
+  .mobile-promo-pill.promo-active {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.6);
+    color: #34d399;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  }
+
+  .mobile-promo-pill.promo-pending {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fcd34d;
+  }
+
+  .m-promo-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .m-promo-edit {
+    font-size: 0.68rem;
+    opacity: 0.8;
+  }
+
+  .m-promo-arrow {
+    font-size: 0.65rem;
+    color: #38bdf8;
   }
 
   .mobile-stepper {
